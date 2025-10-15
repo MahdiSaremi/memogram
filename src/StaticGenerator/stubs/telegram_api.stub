@@ -1,0 +1,18 @@
+<?php
+
+declare(strict_types=1);
+
+namespace MemoGram\Api;
+
+{{ $uses }}
+
+class TelegramApi
+{
+    use Concerns\Requests;
+
+    public function __construct(
+        private readonly string $token,
+    ) {}
+
+    {{ $indent($methods, 1) }}
+}

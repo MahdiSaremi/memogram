@@ -1,0 +1,57 @@
+<?php
+
+declare(strict_types=1);
+
+namespace MemoGram\Api\Types;
+
+use MemoGram\Api\Concerns;
+use MemoGram\Handle\Event;
+{{ $uses }}
+
+class {{ $class }} implements Event
+{
+    use Concerns\Data;
+
+    public function __construct(
+        {{ $indent($props, 2) }}
+    ) { }
+
+    public function getChatId(): null|string|int
+    {
+        return $this->message?->chat?->id
+            ?? $this->edited_message?->chat?->id
+            ?? $this->channel_post?->chat?->id
+            ?? $this->edited_channel_post?->chat?->id
+            ?? $this->callback_query?->message?->chat?->id // todo
+            ?? $this->message_reaction?->chat?->id
+            ?? $this->chat_boost?->chat?->id
+            ?? $this->chat_join_request?->chat?->id
+            ?? $this->removed_chat_boost?->chat?->id
+            ?? $this->chat_member?->chat?->id
+            ?? $this->my_chat_member?->chat?->id;
+    }
+
+    public function getUserId(): null|string|int
+    {
+        return $this->message?->from?->id
+            ?? $this->edited_message?->from?->id
+            ?? $this->callback_query?->from?->id
+            ?? $this->message_reaction?->user?->id
+            ?? $this->chat_join_request?->from?->id
+            ?? $this->chat_member?->from?->id
+            ?? $this->my_chat_member?->from?->id
+            ?? $this->inline_query?->from?->id
+            ?? $this->chosen_inline_result?->from?->id;
+    }
+
+    public function getUserMessageId(): null|string|int
+    {
+        return $this->message?->message_id
+            ?? $this->edited_message?->message_id
+            ?? $this->channel_post?->message_id
+            ?? $this->edited_channel_post?->message_id
+            ?? $this->callback_query?->message?->message_id // todo
+            ?? $this->callback_query?->inline_message_id
+            ?? $this->message_reaction?->message_id;
+    }
+}

@@ -1,0 +1,17 @@
+<?php
+
+declare(strict_types=1);
+
+namespace MemoGram\Api\Types;
+
+use MemoGram\Api\Concerns;
+{{ $uses }}
+
+class {{ $class }}
+{
+    use Concerns\Data;
+
+    public function __construct(
+        {{ $indent($props, 2) }}
+    ) { }
+}
