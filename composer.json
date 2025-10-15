@@ -1,5 +1,5 @@
 {
-    "name": "mmb/mmb",
+    "name": "memogram/framework",
     "description": "Make your bot with Laravel framework",
     "type": "library",
     "require": {
