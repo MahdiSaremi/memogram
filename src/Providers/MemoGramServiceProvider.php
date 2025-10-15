@@ -4,7 +4,6 @@ namespace MemoGram\Providers;
 
 use Carbon\Laravel\ServiceProvider;
 use Illuminate\Console\Application as Artisan;
-use Revolt\EventLoop;
 
 class MemoGramServiceProvider extends ServiceProvider
 {
@@ -21,8 +20,6 @@ class MemoGramServiceProvider extends ServiceProvider
 
         $this->registerCommands();
         $this->registerLang();
-
-        $this->registerEventLoop();
     }
 
 
@@ -50,20 +47,5 @@ class MemoGramServiceProvider extends ServiceProvider
         ], ['memogram:lang', 'lang']);
 
         $this->loadTranslationsFrom(__DIR__ . '/../../lang', 'memogram');
-    }
-
-    public function registerEventLoop()
-    {
-        $previousErrorHandler = EventLoop::getErrorHandler();
-        
-        EventLoop::setErrorHandler(function (\Throwable $exception) use ($previousErrorHandler) {
-            report($exception);
-
-            if ($previousErrorHandler) {
-                $previousErrorHandler($exception);
-            } else {
-                throw $exception;
-            }
-        });
     }
 }
