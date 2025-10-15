@@ -2,13 +2,11 @@
 
 namespace MemoGram\Tests\Api;
 
-use Illuminate\Http\Client\Request;
-use Illuminate\Support\Facades\Http;
-use MemoGram\Api\TelegramApi;
 use MemoGram\Api\Types\CallbackQuery;
 use MemoGram\Api\Types\Chat;
 use MemoGram\Api\Types\InaccessibleMessage;
 use MemoGram\Api\Types\Message;
+use MemoGram\Api\Types\Update;
 use MemoGram\Tests\TestCase;
 
 class CreatingDataTest extends TestCase
@@ -28,6 +26,27 @@ class CreatingDataTest extends TestCase
         $this->assertSame(100, $message->message_id);
         $this->assertInstanceOf(Chat::class, $message->chat);
         $this->assertSame(200, $message->chat->id);
+    }
+
+    public function testCreatingUpdate()
+    {
+        $update = Update::makeFromArray([
+            'update_id' => 100,
+            'message' => [
+                'message_id' => 100,
+                'chat' => [
+                    'type' => 'private',
+                    'id' => 200,
+                ],
+                'date' => 12345,
+            ],
+        ]);
+
+        $this->assertInstanceOf(Update::class, $update);
+        $this->assertInstanceOf(Message::class, $update->message);
+        $this->assertSame(100, $update->message->message_id);
+        $this->assertInstanceOf(Chat::class, $update->message->chat);
+        $this->assertSame(200, $update->message->chat->id);
     }
 
     public function testCreatingWithChooseAttribute()

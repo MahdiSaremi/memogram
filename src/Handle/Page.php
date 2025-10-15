@@ -5,7 +5,6 @@ namespace MemoGram\Handle;
 use Illuminate\Database\Eloquent\Collection;
 use MemoGram\Models\PageCellModel;
 use MemoGram\Models\PageModel;
-use MemoGram\Response\AsResponse;
 
 class Page
 {

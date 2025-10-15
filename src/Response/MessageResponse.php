@@ -3,6 +3,8 @@
 namespace MemoGram\Response;
 
 use Illuminate\Support\Traits\Conditionable;
+use MemoGram\Api\Types\KeyboardButton;
+use MemoGram\Api\Types\ReplyKeyboardMarkup;
 use MemoGram\Api\Types\ReplyParameters;
 use MemoGram\Handle\Page;
 use MemoGram\Models\PageCellModel;
@@ -56,6 +58,8 @@ class MessageResponse implements AsResponse
         $chatId = event()?->getChatId();
         $messageId = event()?->getUserMessageId();
 
+        $keyboardMarkup = $this->getFormattedKeyboardMarkup();
+
         $message = context()?->handler->api->sendMessage(
             chat_id: $chatId,
             text: value($this->message),
@@ -63,6 +67,7 @@ class MessageResponse implements AsResponse
                 message_id: $messageId,
                 allow_sending_without_reply: true,
             ),
+            reply_markup: $keyboardMarkup,
         );
 
         if ($this->save) {
@@ -73,5 +78,52 @@ class MessageResponse implements AsResponse
                 ]),
             );
         }
+    }
+
+    /**
+     * @return Key[][]
+     */
+    protected function getFormattedSchema(): array
+    {
+        if (!$this->schema) {
+            return [];
+        }
+
+        $all = [];
+
+        foreach ($this->schema as $row) {
+            if (is_null($row) || $row === false) continue;
+
+            $rowKey = [];
+
+            foreach ($row as $column) {
+                if (is_null($column) || $column === false) continue;
+
+                $rowKey[] = $column;
+            }
+
+            if ($rowKey) {
+                $all[] = $rowKey;
+            }
+        }
+
+        return $all;
+    }
+
+    protected function getFormattedKeyboardMarkup(): ?ReplyKeyboardMarkup
+    {
+        $schema = $this->getFormattedSchema();
+
+        if (!$schema) {
+            return null;
+        }
+
+        return new ReplyKeyboardMarkup(
+            keyboard: array_map(fn($row) => array_map(function (Key $key) {
+                return new KeyboardButton(
+                    text: $key->text,
+                );
+            }, $row), $schema),
+        );
     }
 }

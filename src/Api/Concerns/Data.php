@@ -92,7 +92,7 @@ trait Data
         if (!$doc) return null;
 
         if (preg_match('/@var\s+([^\s]+).*\b/', $doc, $m)) {
-            return trim($m[1]);
+            return preg_replace('/(^null\||\?)|(\|null$)/', '', trim($m[1]));
         }
 
         return null;

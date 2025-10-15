@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $use_id
  * @property int $message_id
  * @property string $key
+ * @property bool $is_taking_control
  */
 class PageCellModel extends Model
 {

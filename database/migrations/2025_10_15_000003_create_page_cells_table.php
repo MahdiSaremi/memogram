@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -18,6 +17,7 @@ return new class extends Migration
                 ->cascadeOnDelete();
             $table->bigInteger('message_id')->nullable()->index();
             $table->string('key')->index();
+            $table->boolean('is_taking_control');
 
             $table->unique(['use_id', 'key']);
         });

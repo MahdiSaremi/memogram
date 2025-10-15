@@ -24,6 +24,13 @@ class EventHandler
 
     public function handle(Event $event): void
     {
+        $this->handleUsing($event, function () use ($event) {
+            $this->pushEvent($event);
+        });
+    }
+
+    public function handleUsing(Event $event, Closure $callback): void
+    {
         $old = static::$current;
 
         try {
@@ -32,7 +39,7 @@ class EventHandler
                 event: $event,
             );
 
-            $this->pushEvent($event);
+            $callback();
         } finally {
             static::$current = $old;
         }

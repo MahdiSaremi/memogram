@@ -20,7 +20,7 @@ trait Requests
 //                'proxy' => $this->proxy,
 //            ])
             ->post("https://api.telegram.org/bot{$this->token}/{$method}", $data)
-            ->json();
+            ->json('result');
     }
 
     public function castValue($value, array $cast): mixed
@@ -29,7 +29,7 @@ trait Requests
             if (class_exists($cast[0])) {
                 return $cast[0]::makeFromArray($value);
             } elseif ($cast[0] == 'array') {
-                return collect($cast)->map(fn($item) => $cast[1]::makeFromArray($item))->all();
+                return collect($value)->map(fn($item) => $cast[1]::makeFromArray($item))->all();
             }
         }
 
