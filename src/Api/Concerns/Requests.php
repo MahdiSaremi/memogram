@@ -8,7 +8,7 @@ trait Requests
 {
     public function call(string $method, array $data = []): mixed
     {
-        $data = $this->prepareData($data);
+        $data = $this->prepareData($data, true);
 
         return Http
             ::asForm()
@@ -24,13 +24,17 @@ trait Requests
             ->json('result');
     }
 
-    protected function prepareData(array $data): array
+    protected function prepareData(array $data, bool $isObject): array
     {
-        $data = array_filter($data, fn($value) => $value !== null);
+        if ($isObject) {
+            $data = array_filter($data, fn($value) => $value !== null);
+        }
 
         foreach ($data as $key => $value) {
             if (is_object($value)) {
-                $data[$key] = $this->prepareData(get_object_vars($value));
+                $data[$key] = $this->prepareData(get_object_vars($value), true);
+            } elseif (is_array($value)) {
+                $data[$key] = $this->prepareData($value, false);
             }
         }
 
