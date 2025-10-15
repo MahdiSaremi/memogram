@@ -70,11 +70,12 @@ class MessageResponse implements AsResponse
             reply_markup: $keyboardMarkup,
         );
 
-        if ($this->save) {
+        if ($this->save ?? $keyboardMarkup) {
             page()->pageCells->push(
                 new PageCellModel([
                     'message_id' => $message->message_id,
                     'key' => $key,
+                    'is_taking_control' => $keyboardMarkup !== null,
                 ]),
             );
         }
@@ -124,6 +125,7 @@ class MessageResponse implements AsResponse
                     text: $key->text,
                 );
             }, $row), $schema),
+            resize_keyboard: true,
         );
     }
 }
