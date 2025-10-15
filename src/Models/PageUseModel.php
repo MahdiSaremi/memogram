@@ -7,11 +7,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property int $id
- * @property int $use_id
- * @property int $message_id
- * @property string $key
+ * @property int $page_id
+ * @property int $chat_id
  */
-class PageCellModel extends Model
+class PageUseModel extends Model
 {
     protected $guarded = [];
     public $timestamps = false;
@@ -26,8 +25,8 @@ class PageCellModel extends Model
         return $this->connection ?? config('memogram.database.connection');
     }
 
-    public function use(): BelongsTo
+    public function page(): BelongsTo
     {
-        return $this->belongsTo(PageUseModel::class, 'use_id', 'id');
+        return $this->belongsTo(PageModel::class, 'page_id', 'id');
     }
 }

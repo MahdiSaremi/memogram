@@ -2,14 +2,13 @@
 
 namespace MemoGram\Response;
 
-use MemoGram\Models\PageCellModel;
-use MemoGram\Models\PageModel;
+use MemoGram\Handle\Page;
 
 interface AsResponse
 {
-    public function runResponse(PageModel $model): ?PageCellModel;
+    public function runResponse(Page $page, string $key): void;
 
-    public function runMorph(PageModel $model, PageCellModel $cell): ?PageCellModel;
-
-    public function runRevoke(PageModel $model, PageCellModel $cell): bool;
+//    public function runMorph(Page $page, PageCellModel $cell): ?PageCellModel;
+//
+//    public function runRevoke(PageModel $model, PageCellModel $cell): bool;
 }

@@ -22,4 +22,13 @@ namespace MemoGram\Handle {
 
         return null;
     }
+
+    function page(): ?Page
+    {
+        if ($pageStack = context()?->handler->pageStack) {
+            return end($pageStack);
+        }
+
+        return null;
+    }
 }

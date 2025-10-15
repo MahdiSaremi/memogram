@@ -17,6 +17,7 @@ class MemoGramServiceProvider extends ServiceProvider
         $config = __DIR__ . '/../../config/memogram.php';
         $this->publishes([$config => base_path('config/memogram.php')], ['memogram']);
         $this->mergeConfigFrom($config, 'memogram');
+        $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations');
 
         $this->registerCommands();
         $this->registerLang();

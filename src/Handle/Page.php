@@ -2,12 +2,20 @@
 
 namespace MemoGram\Handle;
 
+use Illuminate\Database\Eloquent\Collection;
+use MemoGram\Models\PageCellModel;
+use MemoGram\Models\PageModel;
+use MemoGram\Response\AsResponse;
+
 class Page
 {
     public array $params = [];
     public int $status = 0;
     public array $states = [];
     public int $statePointer = 0;
+    public PageModel $pageModel;
+    /** @var Collection<int,PageCellModel> */
+    public Collection $pageCells;
 
     public const STATUS_NOTING = 0;
     public const STATUS_MOUNTING = 1;
@@ -23,7 +31,12 @@ class Page
     {
         $this->status = self::STATUS_MOUNTING;
         $this->params = array_replace($this->params, $params);
+        $this->pageModel = new PageModel();
+        $this->pageCells = new Collection();
+
         $this->callReference();
+
+
     }
 
     public function hydrate(): void
@@ -60,9 +73,9 @@ class Page
         context()->handler->pageStack[] = $this;
 
         try {
-            $response = app($class)->$method();
-
-            // todo
+            context()->handler->handleResponse(
+                app($class)->$method(),
+            );
         } finally {
             array_pop(context()->handler->pageStack);
         }

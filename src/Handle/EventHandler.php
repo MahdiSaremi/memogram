@@ -54,15 +54,24 @@ class EventHandler
 
     public function handleResponse(mixed $response): void
     {
-        $responses = $this->assignResponsesKey($this->responseToArray($response));
+        $responses = $this->normalizeResponse($response);
 
         /**
          * @var string $key
          * @var AsResponse $response
          */
         foreach ($responses as [$key, $response]) {
-            $response->runResponse();
+            $response->runResponse(end($this->pageStack), $key);
         }
+    }
+
+    /**
+     * @param mixed $response
+     * @return array<(AsResponse|string)[]>
+     */
+    protected function normalizeResponse(mixed $response): array
+    {
+        return $this->assignResponsesKey($this->responseToArray($response));
     }
 
     protected function responseToArray(mixed $response): array
@@ -89,7 +98,7 @@ class EventHandler
     {
         $all = [];
         foreach ($responses as $index => $response) {
-            $key = $response->key ?? "$index";
+            $key = $response->id ?? "$index";
 
             $all[] = [$key, $response];
         }
