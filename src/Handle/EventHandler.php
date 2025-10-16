@@ -77,7 +77,7 @@ class EventHandler
          * @var AsResponse $response
          */
         foreach ($responses as [$key, $response]) {
-            $response->runResponse(end($this->pageStack), $key);
+            $response->runResponse(@end($this->pageStack), $key);
         }
     }
 

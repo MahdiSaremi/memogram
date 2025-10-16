@@ -53,7 +53,7 @@ class MessageResponse implements AsResponse
     }
 
 
-    public function runResponse(Page $page, string $key): void
+    public function runResponse(?Page $page, string $key): void
     {
         $chatId = event()?->getChatId();
         $messageId = event()?->getUserMessageId();
@@ -71,7 +71,7 @@ class MessageResponse implements AsResponse
         );
 
         if ($this->save ?? $keyboardMarkup) {
-            page()->pageCells->push(
+            $page->pageCells->push(
                 new PageCellModel([
                     'message_id' => $message->message_id,
                     'key' => $key,
