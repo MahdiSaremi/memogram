@@ -17,7 +17,7 @@ class PageUseModel extends Model
 
     public function getTable()
     {
-        return $this->table ?? config('memogram.database.pages');
+        return $this->table ?? config('memogram.database.page_uses');
     }
 
     public function getConnectionName()

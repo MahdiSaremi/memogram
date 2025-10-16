@@ -4,12 +4,15 @@ namespace MemoGram\Handle;
 
 use Closure;
 use MemoGram\Api\TelegramApi;
+use MemoGram\Matching\ListenerMatcher;
 use MemoGram\Response\AsResponse;
 use MemoGram\Response\MessageResponse;
 
 class EventHandler
 {
     public static ?Context $current = null;
+
+    protected ListenerMatcher $staticListener;
 
     /**
      * @var Page[]
@@ -20,6 +23,7 @@ class EventHandler
         public TelegramApi $api,
     )
     {
+        $this->staticListener = new ListenerMatcher();
     }
 
     public function handle(Event $event): void
@@ -47,7 +51,12 @@ class EventHandler
 
     protected function pushEvent(Event $event): void
     {
+        $this->staticListener->pushEvent($event);
+    }
 
+    public function staticListen(Closure $using): void
+    {
+        $using($this->staticListener);
     }
 
 
