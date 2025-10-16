@@ -15,8 +15,9 @@ class Page
 {
     public array $params = [];
     public int $status = 0;
-    public array $states = [];
-    public int $statePointer = 0;
+    protected array $hydratedStates;
+    protected array $states = [];
+    protected int $statePointer = 0;
     public PageModel $pageModel;
     public ?PageUseModel $pageUseModel = null;
     /** @var Collection<int,PageCellModel> */
@@ -45,10 +46,14 @@ class Page
         $this->updateDatabase();
     }
 
-    public function hydrate(): void
+    public function hydrate(PageUseModel $use): void
     {
         $this->status = self::STATUS_HYDRATING;
         $this->statePointer = 0;
+        $this->pageModel = $use->page;
+        $this->pageUseModel = $use;
+        $this->pageCells = $this->pageUseModel->cells()->get();
+        $this->hydratedStates = $use->page->states;
         $this->listener = new ListenerMatcher();
 
         $this->callReference(function ($response) {
@@ -81,10 +86,11 @@ class Page
                 return $state;
 
             case self::STATUS_HYDRATING:
-                if ($this->statePointer < count($this->states)) {
-                    return $this->states[$this->statePointer];
+                if ($this->statePointer < count($this->hydratedStates)) {
+                    return $this->states[$this->statePointer] = new State($this->hydratedStates[$this->statePointer++]);
                 } else {
-                    throw new \Exception("State is not exists.");
+                    return $this->states[$this->statePointer++] = new State($defaultValue);
+//                    throw new \Exception("State is not exists."); todo
                 }
 
             default:

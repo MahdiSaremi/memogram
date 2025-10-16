@@ -61,19 +61,16 @@ class EventHandler
         $messageId = $event->getUserMessageId();
 
         $controller = $chatId ? PageCellModel::query()
-            ->leftJoin($tableUse, "{$tableUse}.id", "=", "{$tableCell}.page_id")
+            ->leftJoin($tableUse, "{$tableUse}.id", "=", "{$tableCell}.use_id")
             ->where('is_taking_control', true)
             ->where("{$tableUse}.chat_id", $chatId)
             ->select("{$tableCell}.*")
-            ->latest()
+            ->latest('id')
             ->first() : null;
 
         if ($controller) {
             $controllerPage = new Page($controller->use->page->reference);
-            $controllerPage->pageModel = $controller->use->page;
-            $controllerPage->pageUseModel = $controller->use;
-            $controllerPage->pageCells = $controllerPage->pageUseModel->cells()->get();
-            $controllerPage->hydrate();
+            $controllerPage->hydrate($controller->use);
         } else {
             $controllerPage = null;
         }
