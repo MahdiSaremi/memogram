@@ -3,6 +3,7 @@
 namespace MemoGram\Response;
 
 use MemoGram\Handle\Page;
+use MemoGram\Models\PageCellModel;
 
 interface AsResponse
 {
@@ -10,7 +11,7 @@ interface AsResponse
 
     public function runListen(Page $page): void;
 
-//    public function runMorph(Page $page, PageCellModel $cell): ?PageCellModel;
-//
+    public function runRefresh(Page $page, string $key, ?PageCellModel $cell): void;
+
 //    public function runRevoke(PageModel $model, PageCellModel $cell): bool;
 }

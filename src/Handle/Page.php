@@ -23,15 +23,22 @@ class Page
     /** @var Collection<int,PageCellModel> */
     public Collection $pageCells;
     public ListenerMatcher $listener;
+    protected bool $requireRefresh = false;
 
     public const STATUS_NOTING = 0;
     public const STATUS_MOUNTING = 1;
     public const STATUS_HYDRATING = 2;
+    public const STATUS_REFRESHING = 3;
 
     public function __construct(
         public string $reference,
     )
     {
+    }
+
+    public function refresh(): void
+    {
+        $this->requireRefresh = true;
     }
 
     public function mount(array $params): void
@@ -42,7 +49,15 @@ class Page
         $this->pageCells = new Collection();
         $this->listener = new ListenerMatcher();
 
-        $this->callReference(context()->handler->handleResponse(...));
+        $this->callReference(function ($response) {
+            /**
+             * @var string $key
+             * @var AsResponse $response
+             */
+            foreach (context()->handler->normalizeResponse($response) as [$key, $response]) {
+                $response->runResponse($this, $key);
+            }
+        });
         $this->updateDatabase();
     }
 
@@ -56,6 +71,7 @@ class Page
         $this->hydratedStates = $use->page->states;
         $this->listener = new ListenerMatcher();
 
+        $this->requireRefresh = false;
         $this->callReference(function ($response) {
             /**
              * @var string $key
@@ -65,6 +81,25 @@ class Page
                 $response->runListen($this);
             }
         });
+
+        if ($this->requireRefresh) {
+            $this->status = self::STATUS_REFRESHING;
+            $this->statePointer = 0;
+            $this->listener = new ListenerMatcher();
+            $cells = $this->pageCells;
+            $this->pageCells = new Collection();
+
+            $this->callReference(function ($response) use ($cells) {
+                /**
+                 * @var string $key
+                 * @var AsResponse $response
+                 */
+                foreach (context()->handler->normalizeResponse($response) as [$key, $response]) {
+                    $response->runRefresh($this, $key, $cells->firstWhere('key', $key));
+                }
+            });
+            $this->updateDatabase();
+        }
     }
 
     public function pushEvent(Event $event): void

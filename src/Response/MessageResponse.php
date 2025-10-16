@@ -81,6 +81,11 @@ class MessageResponse implements AsResponse
         }
     }
 
+    public function runRefresh(Page $page, string $key, ?PageCellModel $cell): void
+    {
+        $this->runResponse($page, $key);
+    }
+
     public function runListen(Page $page): void
     {
         // todo
