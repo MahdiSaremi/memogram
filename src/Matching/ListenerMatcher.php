@@ -24,7 +24,7 @@ class ListenerMatcher
             $message = false;
         }
 
-        return $this->listeners[] = (new OnMessage)->message($message)->when($callback)->then($callback);
+        return $this->listeners[] = (new OnMessage)->message($message)->when(isset($callback))->then($callback);
     }
 
     public function changeAsCurrent(\Closure $callback): void

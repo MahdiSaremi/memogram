@@ -75,22 +75,24 @@ class EventHandler
             $controllerPage = null;
         }
 
-        if ($controllerPage?->listener->pushEventAt($event, true)) {
-            return;
-        }
+        $callback = function () use ($event) {
+            if ($this->staticListener->pushEventAt($event, true)) {
+                return true;
+            }
 
-        if ($this->staticListener->pushEventAt($event, true)) {
-            return;
-        }
+            // todo interaction
 
-        // todo interaction
+            if ($this->staticListener->pushEventAt($event, false)) {
+                return true;
+            }
 
-        if ($this->staticListener->pushEventAt($event, false)) {
-            return;
-        }
+            return false;
+        };
 
-        if ($controllerPage?->listener->pushEventAt($event, false)) {
-            return;
+        if ($controllerPage) {
+            $controllerPage->pushHydratedEvent($event, $callback);
+        } else {
+            $callback();
         }
     }
 

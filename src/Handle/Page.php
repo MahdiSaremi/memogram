@@ -71,7 +71,6 @@ class Page
         $this->hydratedStates = $use->page->states;
         $this->listener = new ListenerMatcher();
 
-        $this->requireRefresh = false;
         $this->callReference(function ($response) {
             /**
              * @var string $key
@@ -81,6 +80,12 @@ class Page
                 $response->runListen($this);
             }
         });
+    }
+
+    public function pushHydratedEvent(Event $event, Closure $callback): void
+    {
+        $this->requireRefresh = false;
+        $this->pushHydratedEventWithoutRefreshing($event, $callback);
 
         if ($this->requireRefresh) {
             $this->status = self::STATUS_REFRESHING;
@@ -102,9 +107,29 @@ class Page
         }
     }
 
-    public function pushEvent(Event $event): void
+    protected function pushHydratedEventWithoutRefreshing(Event $event, Closure $callback): void
     {
+        try {
+            context()->handler->pageStack[] = $this;
+            if ($this->listener->pushEventAt($event, true)) {
+                return;
+            }
+        } finally {
+            array_pop(context()->handler->pageStack);
+        }
 
+        if ($callback()) {
+            return;
+        }
+
+        try {
+            context()->handler->pageStack[] = $this;
+            if ($this->listener->pushEventAt($event, false)) {
+                return;
+            }
+        } finally {
+            array_pop(context()->handler->pageStack);
+        }
     }
 
     public function listenUsing(Closure $callback): void
@@ -123,6 +148,14 @@ class Page
             case self::STATUS_HYDRATING:
                 if ($this->statePointer < count($this->hydratedStates)) {
                     return $this->states[$this->statePointer] = new State($this->hydratedStates[$this->statePointer++]);
+                } else {
+                    return $this->states[$this->statePointer++] = new State($defaultValue);
+//                    throw new \Exception("State is not exists."); todo
+                }
+
+            case self::STATUS_REFRESHING:
+                if ($this->statePointer < count($this->states)) {
+                    return $this->states[$this->statePointer++];
                 } else {
                     return $this->states[$this->statePointer++] = new State($defaultValue);
 //                    throw new \Exception("State is not exists."); todo
