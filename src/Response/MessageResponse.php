@@ -81,6 +81,11 @@ class MessageResponse implements AsResponse
         }
     }
 
+    public function runListen(Page $page): void
+    {
+        // todo
+    }
+
     /**
      * @return Key[][]
      */

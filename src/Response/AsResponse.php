@@ -8,6 +8,8 @@ interface AsResponse
 {
     public function runResponse(?Page $page, string $key): void;
 
+    public function runListen(Page $page): void;
+
 //    public function runMorph(Page $page, PageCellModel $cell): ?PageCellModel;
 //
 //    public function runRevoke(PageModel $model, PageCellModel $cell): bool;

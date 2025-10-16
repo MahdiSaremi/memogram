@@ -14,6 +14,7 @@ class OnMessage implements Listener
 
     public array $types = ['*'];
     public null|string|false $message = false;
+    public bool $atFirst = false;
     public ?Closure $then = null;
 
     public function message(null|string|false $message)
@@ -23,6 +24,18 @@ class OnMessage implements Listener
         }
 
         $this->message = $message;
+        return $this;
+    }
+
+    public function atFirst()
+    {
+        $this->atFirst = true;
+        return $this;
+    }
+
+    public function atLast()
+    {
+        $this->atFirst = false;
         return $this;
     }
 

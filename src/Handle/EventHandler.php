@@ -5,6 +5,9 @@ namespace MemoGram\Handle;
 use Closure;
 use MemoGram\Api\TelegramApi;
 use MemoGram\Matching\ListenerMatcher;
+use MemoGram\Models\PageCellModel;
+use MemoGram\Models\PageModel;
+use MemoGram\Models\PageUseModel;
 use MemoGram\Response\AsResponse;
 use MemoGram\Response\MessageResponse;
 
@@ -51,7 +54,47 @@ class EventHandler
 
     protected function pushEvent(Event $event): void
     {
-        $this->staticListener->pushEvent($event);
+        $tablePage = (new PageModel)->getTable();
+        $tableUse = (new PageUseModel)->getTable();
+        $tableCell = (new PageCellModel)->getTable();
+        $chatId = $event->getChatId();
+        $messageId = $event->getUserMessageId();
+
+        $controller = $chatId ? PageCellModel::query()
+            ->leftJoin($tableUse, "{$tableUse}.id", "=", "{$tableCell}.page_id")
+            ->where('is_taking_control', true)
+            ->where("{$tableUse}.chat_id", $chatId)
+            ->select("{$tableCell}.*")
+            ->latest()
+            ->first() : null;
+
+        if ($controller) {
+            $controllerPage = new Page($controller->use->page->reference);
+            $controllerPage->pageModel = $controller->use->page;
+            $controllerPage->pageUseModel = $controller->use;
+            $controllerPage->pageCells = $controllerPage->pageUseModel->cells()->get();
+            $controllerPage->hydrate();
+        } else {
+            $controllerPage = null;
+        }
+
+        if ($controllerPage?->listener->pushEventAt($event, true)) {
+            return;
+        }
+
+        if ($this->staticListener->pushEventAt($event, true)) {
+            return;
+        }
+
+        // todo interaction
+
+        if ($this->staticListener->pushEventAt($event, false)) {
+            return;
+        }
+
+        if ($controllerPage?->listener->pushEventAt($event, false)) {
+            return;
+        }
     }
 
     public function staticListen(Closure $using): void
@@ -77,7 +120,7 @@ class EventHandler
          * @var AsResponse $response
          */
         foreach ($responses as [$key, $response]) {
-            $response->runResponse(@end($this->pageStack), $key);
+            $response->runResponse($this->pageStack ? end($this->pageStack) : null, $key);
         }
     }
 
@@ -85,7 +128,7 @@ class EventHandler
      * @param mixed $response
      * @return array<(AsResponse|string)[]>
      */
-    protected function normalizeResponse(mixed $response): array
+    public function normalizeResponse(mixed $response): array
     {
         return $this->assignResponsesKey($this->responseToArray($response));
     }

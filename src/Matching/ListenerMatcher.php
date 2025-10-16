@@ -39,11 +39,15 @@ class ListenerMatcher
         }
     }
 
-    public function pushEvent(Event $event): bool
+    public function pushEventAt(Event $event, bool $atFirst): bool
     {
         $matcher = new MatcherHelper();
-        
+
         foreach ($this->listeners as $listener) {
+            if ($atFirst !== @$listener->atFirst ?? false) {
+                continue;
+            }
+
             if ($listener->runCheck($event, $matcher)) {
                 $old = static::$continue;
 
@@ -62,5 +66,11 @@ class ListenerMatcher
         }
 
         return false;
+    }
+
+    public function pushEvent(Event $event): bool
+    {
+        $this->pushEventAt($event, true);
+        $this->pushEventAt($event, false);
     }
 }

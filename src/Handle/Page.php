@@ -2,11 +2,14 @@
 
 namespace MemoGram\Handle;
 
+use Closure;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
+use MemoGram\Matching\ListenerMatcher;
 use MemoGram\Models\PageCellModel;
 use MemoGram\Models\PageModel;
 use MemoGram\Models\PageUseModel;
+use MemoGram\Response\AsResponse;
 
 class Page
 {
@@ -18,6 +21,7 @@ class Page
     public ?PageUseModel $pageUseModel = null;
     /** @var Collection<int,PageCellModel> */
     public Collection $pageCells;
+    public ListenerMatcher $listener;
 
     public const STATUS_NOTING = 0;
     public const STATUS_MOUNTING = 1;
@@ -35,8 +39,9 @@ class Page
         $this->params = array_replace($this->params, $params);
         $this->pageModel = new PageModel();
         $this->pageCells = new Collection();
+        $this->listener = new ListenerMatcher();
 
-        $this->callReference();
+        $this->callReference(context()->handler->handleResponse(...));
         $this->updateDatabase();
     }
 
@@ -44,7 +49,27 @@ class Page
     {
         $this->status = self::STATUS_HYDRATING;
         $this->statePointer = 0;
-        $this->callReference();
+        $this->listener = new ListenerMatcher();
+
+        $this->callReference(function ($response) {
+            /**
+             * @var string $key
+             * @var AsResponse $response
+             */
+            foreach (context()->handler->normalizeResponse($response) as [$key, $response]) {
+                $response->runListen($this);
+            }
+        });
+    }
+
+    public function pushEvent(Event $event): void
+    {
+
+    }
+
+    public function listenUsing(Closure $callback): void
+    {
+        $callback($this->listener);
     }
 
     public function useState($defaultValue): State
@@ -67,14 +92,14 @@ class Page
         }
     }
 
-    protected function callReference(): void
+    protected function callReference(Closure $callback): void
     {
         [$class, $method] = explode('@', $this->reference);
 
         context()->handler->pageStack[] = $this;
 
         try {
-            context()->handler->handleResponse(
+            $callback(
                 app($class)->$method(),
             );
         } finally {

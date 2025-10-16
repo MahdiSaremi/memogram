@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $message_id
  * @property string $key
  * @property bool $is_taking_control
+ * @property PageUseModel $use
  */
 class PageCellModel extends Model
 {
