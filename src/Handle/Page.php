@@ -5,6 +5,7 @@ namespace MemoGram\Handle;
 use Closure;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
+use MemoGram\Exceptions\ForcePageResponse;
 use MemoGram\Matching\ListenerMatcher;
 use MemoGram\Models\PageCellModel;
 use MemoGram\Models\PageModel;
@@ -183,6 +184,10 @@ class Page
         try {
             $callback(
                 app($class)->$method(),
+            );
+        } catch (ForcePageResponse $pageResponse) {
+            $callback(
+                $pageResponse->getResponse(),
             );
         } finally {
             array_pop(context()->handler->pageStack);
