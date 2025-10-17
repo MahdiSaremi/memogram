@@ -3,6 +3,7 @@
 namespace MemoGram\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property int $id
@@ -27,5 +28,10 @@ class PageModel extends Model
     public function getConnectionName()
     {
         return $this->connection ?? config('memogram.database.connection');
+    }
+
+    public function uses(): HasMany
+    {
+        return $this->hasMany(PageUseModel::class, 'page_id', 'id');
     }
 }

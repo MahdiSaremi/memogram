@@ -24,6 +24,7 @@ class Page
     public Collection $pageCells;
     public ListenerMatcher $listener;
     protected bool $requireRefresh = false;
+    protected bool $requireSave = false;
 
     public const STATUS_NOTING = 0;
     public const STATUS_MOUNTING = 1;
@@ -39,6 +40,11 @@ class Page
     public function refresh(): void
     {
         $this->requireRefresh = true;
+    }
+
+    public function save(): void
+    {
+        $this->requireSave = true;
     }
 
     public function mount(array $params): void
@@ -104,6 +110,8 @@ class Page
                 }
             });
             $this->updateDatabase();
+        } elseif ($this->requireSave) {
+            $this->updateDatabaseStates();
         }
     }
 
@@ -141,7 +149,7 @@ class Page
     {
         switch ($this->status) {
             case self::STATUS_MOUNTING:
-                $state = new State($defaultValue);
+                $state = new State(value($defaultValue));
                 $this->states[] = $state;
                 return $state;
 
@@ -149,7 +157,7 @@ class Page
                 if ($this->statePointer < count($this->hydratedStates)) {
                     return $this->states[$this->statePointer] = new State($this->hydratedStates[$this->statePointer++]);
                 } else {
-                    return $this->states[$this->statePointer++] = new State($defaultValue);
+                    return $this->states[$this->statePointer++] = new State(value($defaultValue));
 //                    throw new \Exception("State is not exists."); todo
                 }
 
@@ -157,7 +165,7 @@ class Page
                 if ($this->statePointer < count($this->states)) {
                     return $this->states[$this->statePointer++];
                 } else {
-                    return $this->states[$this->statePointer++] = new State($defaultValue);
+                    return $this->states[$this->statePointer++] = new State(value($defaultValue));
 //                    throw new \Exception("State is not exists."); todo
                 }
 
@@ -198,59 +206,92 @@ class Page
         $states_hash = md5(json_encode($states));
 
         DB::connection(config('memogram.database.connection'))->transaction(function () use ($states, $states_hash) {
-            $previousPage = null;
-
-            if ($isSame = $this->pageModel->exists && $this->pageModel->states_hash == $states_hash) {
-                if (!$page = PageModel::query()
-                    ->lockForUpdate()
-                    ->where(['reference' => $this->reference, 'states_hash' => $states_hash])
-                    ->first()) {
-                    $isSame = false;
-
-                    $page = PageModel::create([
-                        'reference' => $this->reference,
-                        'states_hash' => $states_hash,
-                        'states' => $states,
-                    ]);
-                }
-            } else {
-                $previousPage = $this->pageModel->exists ? PageModel::query()
-                    ->lockForUpdate()
+            $previousPage = $this->pageModel->exists
+                ? PageModel::query()
                     ->where(['reference' => $this->pageModel->reference, 'states_hash' => $this->pageModel->states_hash])
-                    ->first() : null;
+                    ->lockForUpdate()
+                    ->first()
+                : null;
 
-                if ($previousPage && PageUseModel::query()->where('page_id', $previousPage->id)->count() == 1) {
-                    $page = $previousPage;
-                    $previousPage = null;
-                    $isSame = true;
-                } else {
-                    $page = PageModel::query()
-                        ->lockForUpdate()
-                        ->firstOrCreate(['reference' => $this->reference, 'states_hash' => $states_hash], ['states' => $states]);
-                }
+            if ($previousPage && $previousPage->states_hash == $states_hash) {
+                $newPage = $previousPage;
+            } elseif ($_newPage = PageModel::query()->where(['reference' => $this->reference, 'states_hash' => $states_hash])->lockForUpdate()->first()) {
+                $newPage = $_newPage;
+            } elseif ($previousPage && $previousPage->uses()->count() == 1) {
+                $newPage = $previousPage;
+                $newPage->update([
+                    'states' => $states,
+                    'states_hash' => $states_hash,
+                ]);
+            } else {
+                $newPage = PageModel::create([
+                    'reference' => $this->reference,
+                    'states_hash' => $states_hash,
+                    'states' => $states,
+                ]);
             }
 
-            /** @var PageUseModel $use */
-            if ($this->pageUseModel && PageUseModel::query()->where('id', $this->pageUseModel->id)->update(['page_id' => $page->id])) {
-                $use = PageUseModel::find($this->pageUseModel->id);
+            $pageUse = $this->pageUseModel
+                ? PageUseModel::query()
+                    ->lockForUpdate()
+                    ->find($this->pageUseModel->id)
+                : null;
+
+            if ($pageUse) {
+                $pageUse->update([
+                    'page_id' => $newPage->id,
+                ]);
             } else {
-                $use = PageUseModel::create([
-                    'page_id' => $page->id,
+                $pageUse = PageUseModel::create([
+                    'page_id' => $newPage->id,
                     'chat_id' => event()->getChatId(),
                 ]);
             }
 
+            $pageUse->cells()->delete();
             foreach ($this->pageCells as $cell) {
-                $cell->use_id = $use->id;
+                $cell->use_id = $pageUse->id;
                 $cell->is_taking_control ??= false;
-                if ($use->wasRecentlyCreated) {
-                    $cell = PageCellModel::create($cell->getAttributes());
-                } else {
-                    $cell->save();
-                }
+                PageCellModel::create($cell->getAttributes());
             }
 
-            if ($previousPage) {
+            if ($previousPage && $previousPage->isNot($newPage)) {
+                $this->deletePageIfNotUsed($previousPage);
+            }
+        });
+    }
+
+    protected function updateDatabaseStates(): void
+    {
+        $states = array_map(function (State $state) {
+            return $state->value;
+        }, $this->states);
+        $states_hash = md5(json_encode($states));
+
+        DB::connection(config('memogram.database.connection'))->transaction(function () use ($states, $states_hash) {
+            $previousPage = $this->pageModel->exists
+                ? PageModel::query()
+                    ->where(['reference' => $this->pageModel->reference, 'states_hash' => $this->pageModel->states_hash])
+                    ->lockForUpdate()
+                    ->first()
+                : null;
+
+            if ($previousPage && $previousPage->states_hash == $states_hash) {
+                return;
+            } elseif ($_newPage = PageModel::query()->where(['reference' => $this->reference, 'states_hash' => $states_hash])->lockForUpdate()->first()) {
+                $this->pageUseModel->update([
+                    'page_id' => $_newPage->id,
+                ]);
+                return;
+            } elseif ($previousPage && $previousPage->uses()->count() == 1) {
+                $newPage = $previousPage;
+                $newPage->update([
+                    'states' => $states,
+                    'states_hash' => $states_hash,
+                ]);
+            }
+
+            if ($previousPage && $previousPage->isNot($newPage ?? null)) {
                 $this->deletePageIfNotUsed($previousPage);
             }
         });

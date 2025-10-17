@@ -5,6 +5,7 @@ namespace MemoGram\Matching;
 use Closure;
 use MemoGram\Handle\Event;
 use MemoGram\Matching\Listeners\Listener;
+use MemoGram\Matching\Listeners\OnAny;
 use MemoGram\Matching\Listeners\OnMessage;
 
 class ListenerMatcher
@@ -16,6 +17,11 @@ class ListenerMatcher
      * @var Listener[]
      */
     public array $listeners = [];
+
+    public function onAny(Closure $callback): OnAny
+    {
+        return $this->listeners[] = new OnAny($callback);
+    }
 
     public function onMessage(null|string|false|Closure $message = false, ?Closure $callback = null): OnMessage
     {
