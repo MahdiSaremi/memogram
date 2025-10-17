@@ -6,8 +6,10 @@ use Closure;
 use MemoGram\Handle\Event;
 use MemoGram\Matching\Listeners\Listener;
 use MemoGram\Matching\Listeners\OnAny;
+use MemoGram\Matching\Listeners\OnGlassKey;
 use MemoGram\Matching\Listeners\OnKey;
 use MemoGram\Matching\Listeners\OnMessage;
+use MemoGram\Response\GlassKey;
 use MemoGram\Response\Key;
 
 class ListenerMatcher
@@ -38,6 +40,11 @@ class ListenerMatcher
     public function onKey(Key $key): OnKey
     {
         return $this->listeners[] = new OnKey($key);
+    }
+
+    public function onGlassKey(GlassKey $key): OnGlassKey
+    {
+        return $this->listeners[] = new OnGlassKey($key);
     }
 
     public function changeAsCurrent(\Closure $callback): void
@@ -83,7 +90,31 @@ class ListenerMatcher
 
     public function pushEvent(Event $event): bool
     {
-        $this->pushEventAt($event, true);
-        $this->pushEventAt($event, false);
+        if ($this->pushEventAt($event, true)) {
+            return true;
+        }
+
+        if ($this->pushEventAt($event, false)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function pushEventAsPipe(Event $event, Closure $next): bool
+    {
+        if ($this->pushEventAt($event, true)) {
+            return true;
+        }
+
+        if ($next($event)) {
+            return true;
+        }
+
+        if ($this->pushEventAt($event, false)) {
+            return true;
+        }
+
+        return false;
     }
 }

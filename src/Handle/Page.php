@@ -92,10 +92,10 @@ class Page
         });
     }
 
-    public function pushHydratedEvent(Event $event, Closure $callback): void
+    public function pushHydratedEvent(Event $event, Closure $next): bool
     {
         $this->requireRefresh = false;
-        $this->pushHydratedEventWithoutRefreshing($event, $callback);
+        $result = $this->pushHydratedEventWithoutRefreshing($event, $next);
 
         if ($this->requireRefresh) {
             $this->status = self::STATUS_REFRESHING;
@@ -118,39 +118,43 @@ class Page
         } elseif ($this->requireSave) {
             $this->updateDatabaseStates();
         }
+
+        return $result;
     }
 
-    protected function pushHydratedEventWithoutRefreshing(Event $event, Closure $callback): void
+    protected function pushHydratedEventWithoutRefreshing(Event $event, Closure $next): bool
     {
         try {
             context()->handler->pageStack[] = $this;
             if ($this->listener->pushEventAt($event, true)) {
-                return;
+                return true;
             }
 
             if ($this->topListener->pushEventAt($event, true)) {
-                return;
+                return true;
             }
         } finally {
             array_pop(context()->handler->pageStack);
         }
 
-        if ($callback()) {
-            return;
+        if ($next($event)) {
+            return true;
         }
 
         try {
             context()->handler->pageStack[] = $this;
             if ($this->topListener->pushEventAt($event, false)) {
-                return;
+                return true;
             }
 
             if ($this->listener->pushEventAt($event, false)) {
-                return;
+                return true;
             }
         } finally {
             array_pop(context()->handler->pageStack);
         }
+
+        return false;
     }
 
     public function listenUsing(Closure $callback): void

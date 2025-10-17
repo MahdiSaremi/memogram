@@ -2,6 +2,8 @@
 
 namespace MemoGram\Response;
 
+use MemoGram\Api\Types\InlineKeyboardButton;
+use MemoGram\Api\Types\InlineKeyboardMarkup;
 use MemoGram\Api\Types\KeyboardButton;
 use MemoGram\Api\Types\ReplyKeyboardMarkup;
 use MemoGram\Api\Types\ReplyParameters;
@@ -11,12 +13,10 @@ use MemoGram\Models\PageCellModel;
 use function MemoGram\Handle\context;
 use function MemoGram\Handle\event;
 
-class MessageResponse extends BaseResponse
+class GlassMessageResponse extends BaseResponse
 {
     public ?string $message = null;
     public ?array $schema = null;
-    public bool $resetKeyboard = false;
-    public ?bool $save = null;
 
     public function message(?string $message)
     {
@@ -27,18 +27,6 @@ class MessageResponse extends BaseResponse
     public function schema(?array $schema)
     {
         $this->schema = $schema;
-        return $this;
-    }
-
-    public function resetKeyboard()
-    {
-        $this->resetKeyboard = true;
-        return $this;
-    }
-
-    public function save(?bool $save = true)
-    {
-        $this->save = $save;
         return $this;
     }
 
@@ -60,12 +48,12 @@ class MessageResponse extends BaseResponse
             reply_markup: $keyboardMarkup,
         );
 
-        if ($this->save ?? $keyboardMarkup) {
+        if ($keyboardMarkup) {
             $page->pageCells->push(
                 new PageCellModel([
                     'message_id' => $message->message_id,
                     'key' => $key,
-                    'is_taking_control' => $keyboardMarkup !== null,
+                    'is_taking_control' => false,
                 ]),
             );
         }
@@ -82,8 +70,8 @@ class MessageResponse extends BaseResponse
             if ($schema = $this->getFormattedSchema()) {
                 foreach ($schema as $row) {
                     foreach ($row as $key) {
-                        if ($key->then) {
-                            $match->onKey($key);
+                        if ($key->then && !isset($key->url)) {
+                            $match->onGlassKey($key);
                         }
                     }
                 }
@@ -92,7 +80,7 @@ class MessageResponse extends BaseResponse
     }
 
     /**
-     * @return Key[][]
+     * @return GlassKey[][]
      */
     protected function getFormattedSchema(): array
     {
@@ -121,7 +109,7 @@ class MessageResponse extends BaseResponse
         return $all;
     }
 
-    protected function getFormattedKeyboardMarkup(): ?ReplyKeyboardMarkup
+    protected function getFormattedKeyboardMarkup(): ?InlineKeyboardMarkup
     {
         $schema = $this->getFormattedSchema();
 
@@ -129,13 +117,20 @@ class MessageResponse extends BaseResponse
             return null;
         }
 
-        return new ReplyKeyboardMarkup(
-            keyboard: array_map(fn($row) => array_map(function (Key $key) {
-                return new KeyboardButton(
+        return new InlineKeyboardMarkup(
+            inline_keyboard: array_map(fn($row) => array_map(function (GlassKey $key) {
+                if (isset($key->url)) {
+                    return new InlineKeyboardButton(
+                        text: $key->text,
+                        url: $key->url,
+                    );
+                }
+
+                return new InlineKeyboardButton(
                     text: $key->text,
+                    callback_data: $key->id,
                 );
             }, $row), $schema),
-            resize_keyboard: true,
         );
     }
 }

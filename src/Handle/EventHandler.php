@@ -57,43 +57,81 @@ class EventHandler
         $tablePage = (new PageModel)->getTable();
         $tableUse = (new PageUseModel)->getTable();
         $tableCell = (new PageCellModel)->getTable();
-        $chatId = $event->getChatId();
-        $messageId = $event->getUserMessageId();
 
-        $controller = $chatId ? PageCellModel::query()
-            ->leftJoin($tableUse, "{$tableUse}.id", "=", "{$tableCell}.use_id")
-            ->where('is_taking_control', true)
-            ->where("{$tableUse}.chat_id", $chatId)
-            ->select("{$tableCell}.*")
-            ->latest('id')
-            ->first() : null;
+        $visitedList = [];
 
-        if ($controller) {
-            $controllerPage = new Page($controller->use->page->reference);
-            $controllerPage->hydrate($controller->use);
-        } else {
-            $controllerPage = null;
+        $pipes = array_filter([
+            // By is_taking_control property
+            function (Event $event, Closure $next) use ($visitedList, $tableCell, $tableUse) {
+                return $this->hydratePageAndPushEvent(
+                    $visitedList,
+                    ($chatId = $event->getChatId()) ? PageCellModel::query()
+                        ->leftJoin($tableUse, "{$tableUse}.id", "=", "{$tableCell}.use_id")
+                        ->where('is_taking_control', true)
+                        ->where("{$tableUse}.chat_id", $chatId)
+                        ->select("{$tableCell}.*")
+                        ->latest('id')
+                        ->first()?->use : null,
+                    $event,
+                    $next,
+                );
+            },
+            // By interaction message
+            function (Event $event, Closure $next) use ($visitedList, $tableCell, $tableUse) {
+                foreach (($chatId = $event->getChatId()) && ($interactionId = $event->getInteractionMessageId()) ? PageCellModel::query()
+                    ->leftJoin($tableUse, "{$tableUse}.id", "=", "{$tableCell}.use_id")
+                    ->where("{$tableUse}.chat_id", $chatId)
+                    ->where("{$tableCell}.message_id", $interactionId)
+                    ->select("{$tableCell}.*")
+                    ->with('use')
+                    ->get() : [] as $cell) {
+                    if ($this->hydratePageAndPushEvent(
+                        $visitedList,
+                        $cell->use,
+                        $event,
+                        $next,
+                    )) {
+                        return true;
+                    }
+                }
+
+                return false;
+            },
+            // Static listeners
+            $this->staticListener->pushEventAsPipe(...),
+        ]);
+
+        $this->pushPipes($event, $pipes);
+    }
+
+    protected function hydratePageAndPushEvent(array &$visitedList, ?PageUseModel $use, Event $event, Closure $next): bool
+    {
+        if ($use) {
+            if (in_array($use->id, $visitedList)) {
+                return false;
+            }
+
+            $visitedList[] = $use->id;
+
+            $page = new Page($use->page->reference);
+            $page->hydrate($use);
+
+            return $page->pushHydratedEvent($event, $next);
         }
 
-        $callback = function () use ($event) {
-            if ($this->staticListener->pushEventAt($event, true)) {
-                return true;
-            }
+        return false;
+    }
 
-            // todo interaction
+    protected function pushPipes(Event $event, array $pipes): bool
+    {
+        $i = 0;
+        $next = static function (Event $event) use (&$pipes, &$i, &$next) {
+            $pipe = @$pipes[$i++];
 
-            if ($this->staticListener->pushEventAt($event, false)) {
-                return true;
-            }
-
-            return false;
+            return $pipe ? $pipe($event, $next) : false;
         };
 
-        if ($controllerPage) {
-            $controllerPage->pushHydratedEvent($event, $callback);
-        } else {
-            $callback();
-        }
+        return $next($event);
     }
 
     public function staticListen(Closure $using): void

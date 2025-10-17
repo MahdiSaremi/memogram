@@ -28,4 +28,14 @@ class FakeEvent implements Event
     {
         return $this->userMessageId;
     }
+
+    public function getInteractionMessageId(): null|string|int
+    {
+        return null;
+    }
+
+    public function getInteractionRepliedMessageId(): null|string|int
+    {
+        return null;
+    }
 }

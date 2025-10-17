@@ -2,16 +2,27 @@
 
 namespace MemoGram\Matching;
 
+use MemoGram\Api\Types\CallbackQuery;
 use MemoGram\Api\Types\Message;
 use MemoGram\Api\Types\Update;
 use MemoGram\Handle\Event;
 
 class MatcherHelper
 {
-    public function beMessage(Event $event, ?Message &$message): bool
+    public function beMessage(Event $event, ?Message &$out): bool
     {
         if ($event instanceof Update && $event->message) {
-            $message = $event->message;
+            $out = $event->message;
+            return true;
+        }
+
+        return false;
+    }
+
+    public function beCallbackQuery(Event $event, ?CallbackQuery &$out): bool
+    {
+        if ($event instanceof Update && $event->callback_query) {
+            $out = $event->callback_query;
             return true;
         }
 
