@@ -93,15 +93,10 @@ class MessageResponse implements AsResponse
                 foreach ($schema as $row) {
                     foreach ($row as $key) {
                         if ($key->then) {
-                            $match->onMessage($key->)
+                            $match->onKey($key);
                         }
                     }
                 }
-                array_map(fn($row) => array_map(function (Key $key) {
-                    return new KeyboardButton(
-                        text: $key->text,
-                    );
-                }, $row), $schema)
             }
         });
     }
