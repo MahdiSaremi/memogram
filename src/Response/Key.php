@@ -6,7 +6,7 @@ use Closure;
 
 class Key
 {
-    public ?Closure $action = null;
+    public ?Closure $then = null;
 
     public function __construct(
         public string $text,
@@ -14,9 +14,9 @@ class Key
     {
     }
 
-    public function action(Closure $callback)
+    public function then(Closure $callback)
     {
-        $this->action = $callback;
+        $this->then = $callback;
         return $this;
     }
 }

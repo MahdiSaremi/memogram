@@ -7,10 +7,10 @@ use MemoGram\Api\Types\KeyboardButton;
 use MemoGram\Api\Types\ReplyKeyboardMarkup;
 use MemoGram\Api\Types\ReplyParameters;
 use MemoGram\Handle\Page;
+use MemoGram\Matching\ListenerMatcher;
 use MemoGram\Models\PageCellModel;
 use function MemoGram\Handle\context;
 use function MemoGram\Handle\event;
-use function MemoGram\Handle\page;
 
 class MessageResponse implements AsResponse
 {
@@ -88,7 +88,22 @@ class MessageResponse implements AsResponse
 
     public function runListen(Page $page): void
     {
-        // todo
+        $page->listenUsing(function (ListenerMatcher $match) {
+            if ($schema = $this->getFormattedSchema()) {
+                foreach ($schema as $row) {
+                    foreach ($row as $key) {
+                        if ($key->then) {
+                            $match->onMessage($key->)
+                        }
+                    }
+                }
+                array_map(fn($row) => array_map(function (Key $key) {
+                    return new KeyboardButton(
+                        text: $key->text,
+                    );
+                }, $row), $schema)
+            }
+        });
     }
 
     /**

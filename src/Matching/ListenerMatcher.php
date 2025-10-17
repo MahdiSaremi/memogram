@@ -6,7 +6,9 @@ use Closure;
 use MemoGram\Handle\Event;
 use MemoGram\Matching\Listeners\Listener;
 use MemoGram\Matching\Listeners\OnAny;
+use MemoGram\Matching\Listeners\OnKey;
 use MemoGram\Matching\Listeners\OnMessage;
+use MemoGram\Response\Key;
 
 class ListenerMatcher
 {
@@ -31,6 +33,11 @@ class ListenerMatcher
         }
 
         return $this->listeners[] = (new OnMessage)->message($message)->when(isset($callback))->then($callback);
+    }
+
+    public function onKey(Key $key): OnKey
+    {
+        return $this->listeners[] = new OnKey($key);
     }
 
     public function changeAsCurrent(\Closure $callback): void
