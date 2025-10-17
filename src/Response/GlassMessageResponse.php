@@ -69,7 +69,7 @@ class GlassMessageResponse extends BaseResponse
                 $api->editMessageText(
                     text: value($this->message),
                     chat_id: $chatId,
-                    message_id: $messageId,
+                    message_id: $cell->message_id,
                 );
             } catch (RequestException $e) {
                 if ($e->response->json('description') != 'Bad Request: message is not modified') {
@@ -91,7 +91,7 @@ class GlassMessageResponse extends BaseResponse
                 try {
                     $api->deleteMessage(
                         chat_id: $chatId,
-                        message_id: $messageId,
+                        message_id: $cell->message_id,
                     );
                 } catch (\Throwable $e) {}
             }
