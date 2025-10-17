@@ -24,10 +24,10 @@ class OnKey extends BaseListener
 
     public function runAction(Event $event): void
     {
-        if ($this->then) {
-            parent::runAction($event);
-        } elseif ($this->key->then) {
+        if ($this->key->then) {
             context()->handler->runAction($this->key->then);
         }
+
+        parent::runAction($event);
     }
 }

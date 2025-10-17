@@ -24,15 +24,19 @@ class OnGlassKey extends BaseListener
 
     public function runAction(Event $event): void
     {
-        if ($this->then) {
-            parent::runAction($event);
-        } elseif ($this->key->then) {
+        if ($this->key->then) {
             context()->handler->runAction($this->key->then);
         }
+
+        parent::runAction($event);
     }
 
     public static function getDataOf(GlassKey $key): string
     {
+        if (!$key->then) {
+            return '~';
+        }
+
         return '~' . ($key->id ?? $key->text);
     }
 }

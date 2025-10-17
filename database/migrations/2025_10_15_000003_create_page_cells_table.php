@@ -18,6 +18,7 @@ return new class extends Migration {
             $table->bigInteger('message_id')->nullable()->index();
             $table->string('key')->index();
             $table->boolean('is_taking_control');
+            $table->string('short_extra')->nullable();
 
             $table->unique(['use_id', 'key']);
         });

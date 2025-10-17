@@ -12,11 +12,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $key
  * @property bool $is_taking_control
  * @property PageUseModel $use
+ * @property ?array $short_extra
  */
 class PageCellModel extends Model
 {
     protected $guarded = [];
     public $timestamps = false;
+
+    protected $casts = [
+        'short_extra' => 'array',
+    ];
 
     public function getTable()
     {
