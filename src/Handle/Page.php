@@ -23,6 +23,7 @@ class Page
     public ?PageUseModel $pageUseModel = null;
     /** @var Collection<int,PageCellModel> */
     public Collection $pageCells;
+    public ListenerMatcher $topListener;
     public ListenerMatcher $listener;
     protected bool $requireRefresh = false;
     protected bool $requireSave = false;
@@ -55,6 +56,7 @@ class Page
         $this->pageModel = new PageModel();
         $this->pageCells = new Collection();
         $this->listener = new ListenerMatcher();
+        $this->topListener = new ListenerMatcher();
 
         $this->callReference(function ($response) {
             /**
@@ -77,6 +79,7 @@ class Page
         $this->pageCells = $this->pageUseModel->cells()->get();
         $this->hydratedStates = $use->page->states;
         $this->listener = new ListenerMatcher();
+        $this->topListener = new ListenerMatcher();
 
         $this->callReference(function ($response) {
             /**
@@ -98,6 +101,7 @@ class Page
             $this->status = self::STATUS_REFRESHING;
             $this->statePointer = 0;
             $this->listener = new ListenerMatcher();
+            $this->topListener = new ListenerMatcher();
             $cells = $this->pageCells;
             $this->pageCells = new Collection();
 
@@ -123,6 +127,10 @@ class Page
             if ($this->listener->pushEventAt($event, true)) {
                 return;
             }
+
+            if ($this->topListener->pushEventAt($event, true)) {
+                return;
+            }
         } finally {
             array_pop(context()->handler->pageStack);
         }
@@ -133,6 +141,10 @@ class Page
 
         try {
             context()->handler->pageStack[] = $this;
+            if ($this->topListener->pushEventAt($event, false)) {
+                return;
+            }
+
             if ($this->listener->pushEventAt($event, false)) {
                 return;
             }
@@ -144,6 +156,11 @@ class Page
     public function listenUsing(Closure $callback): void
     {
         $callback($this->listener);
+    }
+
+    public function topListenUsing(Closure $callback): void
+    {
+        $callback($this->topListener);
     }
 
     public function useState($defaultValue): State

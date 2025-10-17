@@ -88,7 +88,7 @@ class MessageResponse implements AsResponse
 
     public function runListen(Page $page): void
     {
-        $page->listenUsing(function (ListenerMatcher $match) {
+        $page->topListenUsing(function (ListenerMatcher $match) {
             if ($schema = $this->getFormattedSchema()) {
                 foreach ($schema as $row) {
                     foreach ($row as $key) {
