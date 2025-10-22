@@ -8,6 +8,7 @@ use MemoGram\Api\Types\ReplyParameters;
 use MemoGram\Handle\Page;
 use MemoGram\Matching\ListenerMatcher;
 use MemoGram\Models\PageCellModel;
+use function MemoGram\Handle\api;
 use function MemoGram\Handle\context;
 use function MemoGram\Handle\event;
 
@@ -50,7 +51,7 @@ class MessageResponse extends BaseResponse
 
         $keyboardMarkup = $this->getFormattedKeyboardMarkup();
 
-        $message = context()?->handler->api->sendMessage(
+        $message = api()->sendMessage(
             chat_id: $chatId,
             text: value($this->message),
             reply_parameters: new ReplyParameters(

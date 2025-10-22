@@ -4,6 +4,7 @@ namespace MemoGram\Response;
 
 use MemoGram\Handle\Page;
 use MemoGram\Models\PageCellModel;
+use function MemoGram\Handle\api;
 
 class DeleteResponse extends BaseResponse
 {
@@ -19,7 +20,7 @@ class DeleteResponse extends BaseResponse
     {
         if ($cell && $cell->message_id) {
             try {
-                \MemoGram\Handle\context()->handler->api->deleteMessage(
+                api()->deleteMessage(
                     chat_id: $cell->use->chat_id,
                     message_id: $cell->message_id,
                 );

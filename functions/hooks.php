@@ -3,7 +3,6 @@
 namespace MemoGram\Hooks;
 
 use Closure;
-use MemoGram\Exceptions\ForcePageResponse;
 use MemoGram\Handle\State;
 use MemoGram\Matching\ListenerMatcher;
 use MemoGram\Matching\Listeners\OnAny;

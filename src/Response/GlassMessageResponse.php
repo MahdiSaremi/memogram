@@ -10,6 +10,7 @@ use MemoGram\Handle\Page;
 use MemoGram\Matching\ListenerMatcher;
 use MemoGram\Matching\Listeners\OnGlassKey;
 use MemoGram\Models\PageCellModel;
+use function MemoGram\Handle\api;
 use function MemoGram\Handle\context;
 use function MemoGram\Handle\event;
 
@@ -60,14 +61,13 @@ class GlassMessageResponse extends BaseResponse
     {
         $chatId = event()?->getChatId();
         $messageId = event()?->getUserMessageId();
-        $api = context()?->handler->api;
         $shouldReply = !($page && $cell) || !$this->deleteOlder;
 
         [$hasCallback, $keyboardMarkup] = $this->getFormattedKeyboardMarkup();
 
         if ($page && $cell && !$this->resend) {
             try {
-                $api->editMessageText(
+                api()->editMessageText(
                     text: value($this->message),
                     chat_id: $chatId,
                     message_id: $cell->message_id,
@@ -79,7 +79,7 @@ class GlassMessageResponse extends BaseResponse
                 }
             }
         } else {
-            $message = $api->sendMessage(
+            $message = api()->sendMessage(
                 chat_id: $chatId,
                 text: value($this->message),
                 reply_parameters: $shouldReply ? new ReplyParameters(
@@ -91,7 +91,7 @@ class GlassMessageResponse extends BaseResponse
 
             if ($page && $cell && $this->deleteOlder) {
                 try {
-                    $api->deleteMessage(
+                    api()->deleteMessage(
                         chat_id: $chatId,
                         message_id: $cell->message_id,
                     );

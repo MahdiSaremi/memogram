@@ -2,6 +2,7 @@
 
 namespace MemoGram\Handle {
 
+    use MemoGram\Api\TelegramApi;
     use MemoGram\Api\Types\Update;
 
     function context(): ?Context
@@ -12,6 +13,16 @@ namespace MemoGram\Handle {
     function event(): ?Event
     {
         return context()?->event;
+    }
+
+    function getEvent(): ?Event
+    {
+        return context()?->event;
+    }
+
+    function api(): ?TelegramApi
+    {
+        return context()->handler->api;
     }
 
     function update(): ?Update

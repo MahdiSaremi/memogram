@@ -54,4 +54,15 @@ class {{ $class }} implements Event
             ?? $this->callback_query?->inline_message_id
             ?? $this->message_reaction?->message_id;
     }
+
+    public function getInteractionMessageId(): null|string|int
+    {
+        return $this->callback_query?->message?->message_id
+            ?? $this->callback_query?->inline_message_id;
+    }
+
+    public function getInteractionRepliedMessageId(): null|string|int
+    {
+        return $this->message?->reply_to_message?->message_id;
+    }
 }

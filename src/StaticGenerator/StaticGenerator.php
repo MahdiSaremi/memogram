@@ -21,7 +21,7 @@ class StaticGenerator
 
     protected function generateApis(): void
     {
-        $CRAWLER_PROXY = '192.168.253.153:10808'; // Set to null to disable
+        $CRAWLER_PROXY = null; // Set to null to disable
 
         // --- Step 1: Fetch HTML Content ---
         echo "Using SOCKS5 proxy: " . ($CRAWLER_PROXY ?? 'Disabled') . " for crawling.\n";

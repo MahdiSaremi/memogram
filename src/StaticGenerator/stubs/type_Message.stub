@@ -1,0 +1,81 @@
+<?php
+
+declare(strict_types=1);
+
+namespace MemoGram\Api\Types;
+
+use MemoGram\Api\Concerns;
+{{ $uses }}
+
+class {{ $class }} implements Event
+{
+    use Concerns\Data;
+
+    public function __construct(
+        {{ $indent($props, 2) }}
+    ) { }
+
+    public const TYPE_PHOTO = 'photo';
+    public const TYPE_CONTACT = 'contact';
+    public const TYPE_LOCATION = 'location';
+    public const TYPE_VIDEO = 'video';
+    public const TYPE_VOICE = 'voice';
+    public const TYPE_AUDIO = 'audio';
+    public const TYPE_STICKER = 'sticker';
+    public const TYPE_ANIMATION = 'animation';
+    public const TYPE_STORY = 'story';
+    public const TYPE_VIDEO_NOTE = 'video_note';
+    public const TYPE_DICE = 'dice';
+    public const TYPE_GAME = 'game';
+    public const TYPE_DOCUMENT = 'document';
+    public const TYPE_POLL = 'poll';
+    public const TYPE_VENUE = 'venue';
+    public const TYPE_NEW_CHAT_MEMBERS = 'new_chat_members';
+    public const TYPE_LEFT_CHAT_MEMBER = 'left_chat_member';
+    public const TYPE_NEW_CHAT_TITLE = 'new_chat_title';
+    public const TYPE_DELETE_CHAT_PHOTO = 'delete_chat_photo';
+    public const TYPE_GROUP_CHAT_CREATED = 'group_chat_created';
+    public const TYPE_SUPERGROUP_CHAT_CREATED = 'supergroup_chat_created';
+    public const TYPE_CHANNEL_CHAT_CREATED = 'channel_chat_created';
+    public const TYPE_USERS_SHARED = 'users_shared';
+    public const TYPE_CHAT_SHARED = 'chat_shared';
+    public const TYPE_MEDIA = 'media';
+    public const TYPE_TEXT = 'text';
+    public const TYPE_UNKNOWN = 'unknown';
+
+    public function getType(): string
+    {
+        return match (true) {
+            null !== $this->photo => self::TYPE_PHOTO,
+            null !== $this->contact => self::TYPE_CONTACT,
+            null !== $this->location => self::TYPE_LOCATION,
+            null !== $this->video => self::TYPE_VIDEO,
+            null !== $this->voice => self::TYPE_VOICE,
+            null !== $this->audio => self::TYPE_AUDIO,
+            null !== $this->sticker => self::TYPE_STICKER,
+            null !== $this->animation => self::TYPE_ANIMATION,
+            null !== $this->story => self::TYPE_STORY,
+            null !== $this->video_note => self::TYPE_VIDEO_NOTE,
+            null !== $this->dice => self::TYPE_DICE,
+            null !== $this->game => self::TYPE_GAME,
+            null !== $this->document => self::TYPE_DOCUMENT,
+            null !== $this->poll => self::TYPE_POLL,
+            null !== $this->venue => self::TYPE_VENUE,
+            null !== $this->new_chat_members => self::TYPE_NEW_CHAT_MEMBERS,
+            null !== $this->left_chat_member => self::TYPE_LEFT_CHAT_MEMBER,
+            null !== $this->new_chat_title => self::TYPE_NEW_CHAT_TITLE,
+            null !== $this->delete_chat_photo => self::TYPE_DELETE_CHAT_PHOTO,
+            null !== $this->group_chat_created => self::TYPE_GROUP_CHAT_CREATED,
+            null !== $this->supergroup_chat_created => self::TYPE_SUPERGROUP_CHAT_CREATED,
+            null !== $this->channel_chat_created => self::TYPE_CHANNEL_CHAT_CREATED,
+//            null !== $this->invoice => 'invoice',
+            null !== $this->users_shared => self::TYPE_USERS_SHARED,
+            null !== $this->chat_shared => self::TYPE_CHAT_SHARED,
+
+            null !== $this->caption => self::TYPE_MEDIA,
+            null !== $this->text => self::TYPE_TEXT,
+
+            default => self::TYPE_UNKNOWN,
+        };
+    }
+}

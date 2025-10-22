@@ -4,12 +4,17 @@ namespace MemoGram\Validation;
 
 use Closure;
 use Illuminate\Contracts\Translation\Translator;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use Illuminate\Translation\PotentiallyTranslatedString;
 use MemoGram\Exceptions\ValidationException;
 use MemoGram\Handle\Event;
 
 class Validator
 {
+    use Concerns\ValidateUpdates,
+        Concerns\ValidationMessages;
+
     protected array $rules = [[]];
     protected array $errors;
 
@@ -25,10 +30,16 @@ class Validator
         return $this;
     }
 
+    public function add(array|string $rules)
+    {
+        array_push($this->rules[count($this->rules) - 1], ...Arr::wrap($rules));
+        return $this;
+    }
+
     public function validate(): void
     {
-        if (!$this->passes()) {
-            throw new ValidationException($this->errors);
+        if ($errors = $this->errors()) {
+            throw new ValidationException($errors);
         }
     }
 
@@ -46,11 +57,17 @@ class Validator
 
         foreach ($this->rules as $ruleList) {
             foreach ($ruleList as $rule) {
-                if ($this->callRule($rule, $fail)) {
+                $this->callRule($rule, $fail);
 
+                if ($lastError !== null) {
+                    $this->errors[] = $lastError->toString();
+                    $lastError = null;
+                    break;
                 }
             }
         }
+
+        return empty($this->errors);
     }
 
     public function fails(): bool
@@ -60,17 +77,23 @@ class Validator
 
     public function errors(): array
     {
+        $this->passes();
+
         return $this->errors;
     }
 
-    protected function callRule(mixed $rule, Closure $fail): bool
+    protected function callRule(mixed $rule, Closure $fail): void
     {
-        if (is_string($rule)) {
-            if (class_exists($rule)) {
-                $rule->validate($this->event, $fail);
-            } else {
+        [$rule, $args] = ValidationRuleParser::parse($rule);
 
-            }
+        if (is_string($rule) && class_exists($rule)) {
+            (new $rule(...$args))->validate($this->event, $fail);
+        } elseif (is_string($rule)) {
+            [$rule, $args] = ValidationRuleParser::parse($rule);
+
+            $this->{'validate' . Str::pascal($rule)}($this->event, $fail, ...$args);
+        } else {
+            $rule->validate($this->event, $fail);
         }
     }
 }
