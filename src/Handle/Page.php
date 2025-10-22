@@ -101,6 +101,14 @@ class Page
             foreach (context()->handler->normalizeResponse($response) as [$key, $response]) {
                 $response->runListen($this);
             }
+        }, function ($response) {
+            /**
+             * @var string $key
+             * @var AsResponse $response
+             */
+            foreach (context()->handler->normalizeResponse($response) as [$key, $response]) {
+                $response->runRefresh($this, $key, $this->pageCells->firstWhere('key', $key));
+            }
         });
     }
 
@@ -236,7 +244,7 @@ class Page
         } elseif ($this->status == self::STATUS_HYDRATING) {
             if ($this->version !== $version) {
                 if ($fail) {
-                    throw new ForcePageResponse($fail());
+                    throw new ForcePageResponse($fail, true);
                 }
 
                 throw new \Exception("Version is old."); // todo
@@ -254,7 +262,7 @@ class Page
         return $this->params;
     }
 
-    protected function callReference(Closure $callback): void
+    protected function callReference(Closure $callback, ?Closure $refreshCallback = null): void
     {
         [$class, $method] = $this->getReferenceCaller();
 
@@ -265,7 +273,7 @@ class Page
                 $class->$method(),
             );
         } catch (ForcePageResponse $pageResponse) {
-            $callback(
+            (($pageResponse->getRefresh() ? $refreshCallback : null) ?? $callback)(
                 $pageResponse->getResponse(),
             );
         } finally {

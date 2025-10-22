@@ -8,6 +8,7 @@ use MemoGram\Handle\State;
 use MemoGram\Matching\ListenerMatcher;
 use MemoGram\Matching\Listeners\OnAny;
 use MemoGram\Matching\Listeners\OnMessage;
+use MemoGram\Response\DeleteResponse;
 use MemoGram\Response\GlassKey;
 use MemoGram\Response\GlassMessageResponse;
 use MemoGram\Response\Key;
@@ -71,6 +72,11 @@ function messageResponse($message = null): MessageResponse
 function glassMessageResponse($message = null): GlassMessageResponse
 {
     return (new GlassMessageResponse)->when($message !== null)->message($message);
+}
+
+function deleteResponse(?string $id = null): DeleteResponse
+{
+    return (new DeleteResponse)->when($id !== null)->id($id);
 }
 
 function key(string $text): Key
