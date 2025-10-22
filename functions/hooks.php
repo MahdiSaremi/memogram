@@ -83,12 +83,17 @@ function glassKey(string $text, ?string $id = null, ?string $url = null): GlassK
     return new GlassKey($text, $id, $url);
 }
 
+function currentListener(): ListenerMatcher
+{
+    return ListenerMatcher::$current ?? page()->listener;
+}
+
 function onAny(Closure $callback): OnAny
 {
-    return ListenerMatcher::$current->onAny(...func_get_args());
+    return currentListener()->onAny(...func_get_args());
 }
 
 function onMessage(null|string|false|Closure $message = false, ?Closure $callback = null): OnMessage
 {
-    return ListenerMatcher::$current->onMessage(...func_get_args());
+    return currentListener()->onMessage(...func_get_args());
 }
