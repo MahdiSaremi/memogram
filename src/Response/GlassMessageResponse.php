@@ -61,6 +61,7 @@ class GlassMessageResponse extends BaseResponse
         $chatId = event()?->getChatId();
         $messageId = event()?->getUserMessageId();
         $api = context()?->handler->api;
+        $shouldReply = !($page && $cell) || !$this->deleteOlder;
 
         [$hasCallback, $keyboardMarkup] = $this->getFormattedKeyboardMarkup();
 
@@ -70,6 +71,7 @@ class GlassMessageResponse extends BaseResponse
                     text: value($this->message),
                     chat_id: $chatId,
                     message_id: $cell->message_id,
+                    reply_markup: $keyboardMarkup,
                 );
             } catch (RequestException $e) {
                 if ($e->response->json('description') != 'Bad Request: message is not modified') {
@@ -80,10 +82,10 @@ class GlassMessageResponse extends BaseResponse
             $message = $api->sendMessage(
                 chat_id: $chatId,
                 text: value($this->message),
-                reply_parameters: new ReplyParameters(
+                reply_parameters: $shouldReply ? new ReplyParameters(
                     message_id: $messageId,
                     allow_sending_without_reply: true,
-                ),
+                ) : null,
                 reply_markup: $keyboardMarkup,
             );
 

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $reference
  * @property array $states
  * @property string $states_hash
+ * @property ?string $version
  */
 class PageModel extends Model
 {

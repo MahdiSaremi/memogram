@@ -4,6 +4,7 @@ namespace MemoGram\Providers;
 
 use Carbon\Laravel\ServiceProvider;
 use Illuminate\Console\Application as Artisan;
+use MemoGram\Support\Facades\MemoRoute;
 
 class MemoGramServiceProvider extends ServiceProvider
 {

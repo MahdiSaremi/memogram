@@ -3,6 +3,7 @@
 namespace MemoGram\Handle;
 
 use Closure;
+use Illuminate\Database\Eloquent\Collection;
 use MemoGram\Api\TelegramApi;
 use MemoGram\Matching\ListenerMatcher;
 use MemoGram\Models\PageCellModel;
@@ -27,6 +28,17 @@ class EventHandler
     )
     {
         $this->staticListener = new ListenerMatcher();
+    }
+
+    public function routes(string|Closure $path): void
+    {
+        $this->staticListener->changeAsCurrent(function () use ($path) {
+            if (is_string($path)) {
+                require $path;
+            } else {
+                $path();
+            }
+        });
     }
 
     public function handle(Event $event): void
@@ -78,24 +90,18 @@ class EventHandler
             },
             // By interaction message
             function (Event $event, Closure $next) use ($visitedList, $tableCell, $tableUse) {
-                foreach (($chatId = $event->getChatId()) && ($interactionId = $event->getInteractionMessageId()) ? PageCellModel::query()
-                    ->leftJoin($tableUse, "{$tableUse}.id", "=", "{$tableCell}.use_id")
-                    ->where("{$tableUse}.chat_id", $chatId)
-                    ->where("{$tableCell}.message_id", $interactionId)
-                    ->select("{$tableCell}.*")
-                    ->with('use')
-                    ->get() : [] as $cell) {
-                    if ($this->hydratePageAndPushEvent(
-                        $visitedList,
-                        $cell->use,
-                        $event,
-                        $next,
-                    )) {
-                        return true;
-                    }
-                }
-
-                return false;
+                return $this->hydratePageAndPushEvent(
+                    $visitedList,
+                    ($chatId = $event->getChatId()) && ($interactionId = $event->getInteractionMessageId()) ? PageUseModel::query()
+                        ->leftJoin($tableCell, "{$tableUse}.id", "=", "{$tableCell}.use_id")
+                        ->where("{$tableUse}.chat_id", $chatId)
+                        ->where("{$tableCell}.message_id", $interactionId)
+                        ->select("{$tableUse}.*")
+                        ->latest('id')
+                        ->get() : null,
+                    $event,
+                    $next,
+                );
             },
             // Static listeners
             $this->staticListener->pushEventAsPipe(...),
@@ -104,22 +110,33 @@ class EventHandler
         $this->pushPipes($event, $pipes);
     }
 
-    protected function hydratePageAndPushEvent(array &$visitedList, ?PageUseModel $use, Event $event, Closure $next): bool
+    protected function hydratePageAndPushEvent(array &$visitedList, null|PageUseModel|Collection $use, Event $event, Closure $next): bool
     {
-        if ($use) {
-            if (in_array($use->id, $visitedList)) {
-                return false;
-            }
-
-            $visitedList[] = $use->id;
-
-            $page = new Page($use->page->reference);
-            $page->hydrate($use);
-
-            return $page->pushHydratedEvent($event, $next);
+        if ($use === null) {
+            $use = [];
+        } elseif ($use instanceof PageUseModel) {
+            $use = [$use];
         }
 
-        return false;
+        $i = 0;
+        $nextLocal = static function (Event $event) use (&$use, &$i, &$nextLocal, &$visitedList, $next) {
+            if ($usage = @$use[$i++]) {
+                if (!in_array($usage->id, $visitedList)) {
+                    $visitedList[] = $usage->id;
+
+                    $page = new Page($usage->page->reference);
+                    $page->hydrate($usage);
+
+                    return $page->pushHydratedEvent($event, $nextLocal);
+                } else {
+                    return $nextLocal($event);
+                }
+            }
+
+            return $next($event);
+        };
+
+        return $nextLocal($event);
     }
 
     protected function pushPipes(Event $event, array $pipes): bool

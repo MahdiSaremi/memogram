@@ -10,6 +10,8 @@ use MemoGram\Models\PageCellModel;
 use MemoGram\Models\PageModel;
 use MemoGram\Models\PageUseModel;
 use MemoGram\Tests\TestCase;
+use function MemoGram\Hooks\open;
+use function MemoGram\Hooks\useVersion;
 use function MemoGram\Handle\{page, event};
 
 class PageTest extends TestCase
@@ -181,6 +183,21 @@ class PageTest extends TestCase
         $this->assertSame([1], $pageModel[0]->states);
         $this->assertCount(2, $pageModel[0]->uses);
     }
+
+    public function testUsingVersion()
+    {
+        $event = new FakeEvent(1, 1, 1);
+
+        $this->eventHandler->handleUsing($event, function () {
+            open([_PageTestClass::class, 'testUsingVersion']);
+        });
+
+        $pageModel = PageModel::query()->first();
+
+        $this->assertSame(_PageTestClass::class . '@testUsingVersion', $pageModel->reference);
+        $this->assertSame([], $pageModel->states);
+        $this->assertSame('2.1.4', $pageModel->version);
+    }
 }
 
 class _PageTestClass
@@ -190,6 +207,12 @@ class _PageTestClass
 
     public function testCallingPage()
     {
+        return static::$a = new FakeResponse("This is a test.");
+    }
+
+    public function testUsingVersion()
+    {
+        useVersion('2.1.4');
         return static::$a = new FakeResponse("This is a test.");
     }
 

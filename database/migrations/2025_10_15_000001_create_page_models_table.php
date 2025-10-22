@@ -16,8 +16,9 @@ return new class extends Migration
             $table->string('reference');
             $table->json('states');
             $table->string('states_hash');
+            $table->string('version', 8)->nullable();
 
-            $table->unique(['reference', 'states_hash']);
+            $table->unique(['reference', 'states_hash', 'version']);
         });
     }
 

@@ -14,10 +14,17 @@ use MemoGram\Response\AsResponse;
 
 class Page
 {
+    public const STATUS_NOTING = 0;
+    public const STATUS_MOUNTING = 1;
+    public const STATUS_HYDRATING = 2;
+    public const STATUS_REFRESHING = 3;
+
     public array $params = [];
-    public int $status = 0;
+    public int $status = self::STATUS_NOTING;
     protected array $hydratedStates;
+    /** @var State[] */
     protected array $states = [];
+    protected array $namedStates = [];
     protected int $statePointer = 0;
     public PageModel $pageModel;
     public ?PageUseModel $pageUseModel = null;
@@ -27,14 +34,12 @@ class Page
     public ListenerMatcher $listener;
     protected bool $requireRefresh = false;
     protected bool $requireSave = false;
-
-    public const STATUS_NOTING = 0;
-    public const STATUS_MOUNTING = 1;
-    public const STATUS_HYDRATING = 2;
-    public const STATUS_REFRESHING = 3;
+    protected array $watchers = [];
+    protected array $lastWatcherResult = [];
+    protected ?string $version = null;
 
     public function __construct(
-        public string $reference,
+        protected string|array $reference,
     )
     {
     }
@@ -49,14 +54,21 @@ class Page
         $this->requireSave = true;
     }
 
+    protected function resetBasic(): void
+    {
+        $this->listener = new ListenerMatcher();
+        $this->topListener = new ListenerMatcher();
+        $this->watchers = [];
+    }
+
     public function mount(array $params): void
     {
+        $this->resetBasic();
         $this->status = self::STATUS_MOUNTING;
         $this->params = array_replace($this->params, $params);
         $this->pageModel = new PageModel();
         $this->pageCells = new Collection();
-        $this->listener = new ListenerMatcher();
-        $this->topListener = new ListenerMatcher();
+        $this->version = null;
 
         $this->callReference(function ($response) {
             /**
@@ -72,14 +84,14 @@ class Page
 
     public function hydrate(PageUseModel $use): void
     {
+        $this->resetBasic();
         $this->status = self::STATUS_HYDRATING;
         $this->statePointer = 0;
         $this->pageModel = $use->page;
         $this->pageUseModel = $use;
+        $this->version = $use->page->version;
         $this->pageCells = $this->pageUseModel->cells()->get();
         $this->hydratedStates = $use->page->states;
-        $this->listener = new ListenerMatcher();
-        $this->topListener = new ListenerMatcher();
 
         $this->callReference(function ($response) {
             /**
@@ -97,12 +109,13 @@ class Page
         $this->requireRefresh = false;
         $result = $this->pushHydratedEventWithoutRefreshing($event, $next);
 
+        $this->callWatchers();
+
         if ($this->requireRefresh) {
+            $cells = $this->pageCells;
+            $this->resetBasic();
             $this->status = self::STATUS_REFRESHING;
             $this->statePointer = 0;
-            $this->listener = new ListenerMatcher();
-            $this->topListener = new ListenerMatcher();
-            $cells = $this->pageCells;
             $this->pageCells = new Collection();
 
             $this->callReference(function ($response) use ($cells) {
@@ -196,15 +209,60 @@ class Page
         }
     }
 
+    public function useWatch(Closure $callback, array $dependencyList): mixed
+    {
+        $this->watchers[] = [
+            $callback,
+            $dependencyList,
+        ];
+
+        if (isset($this->lastWatcherResult[count($this->watchers) - 1])) {
+            return $this->lastWatcherResult[count($this->watchers) - 1];
+        }
+
+        return null;
+    }
+
+    public function useVersion($version, $fail = null): void
+    {
+        if (!is_string($version)) {
+            $version = hash('crc32', serialize($version));
+        } elseif (strlen($version) >= 8) {
+            $version = hash('crc32', $version);
+        }
+
+        if ($this->status == self::STATUS_MOUNTING) {
+            $this->version = $version;
+        } elseif ($this->status == self::STATUS_HYDRATING) {
+            if ($this->version !== $version) {
+                if ($fail) {
+                    throw new ForcePageResponse($fail());
+                }
+
+                throw new \Exception("Version is old."); // todo
+            }
+        }
+    }
+
+    public function getParam(string $name, $default = null)
+    {
+        return $this->params[$name] ?? value($default);
+    }
+
+    public function getParams(): array
+    {
+        return $this->params;
+    }
+
     protected function callReference(Closure $callback): void
     {
-        [$class, $method] = explode('@', $this->reference);
+        [$class, $method] = $this->getReferenceCaller();
 
         context()->handler->pageStack[] = $this;
 
         try {
             $callback(
-                app($class)->$method(),
+                $class->$method(),
             );
         } catch (ForcePageResponse $pageResponse) {
             $callback(
@@ -212,6 +270,36 @@ class Page
             );
         } finally {
             array_pop(context()->handler->pageStack);
+        }
+    }
+
+    protected function callWatchers(): void
+    {
+        if (!$this->watchers) {
+            return;
+        }
+
+        $changedStates = [];
+        foreach ($this->states as $state) {
+            if ($state->isChanged) {
+                $changedStates[] = $state;
+            }
+        }
+
+        foreach ($this->watchers as $watcher) {
+            $ok = false;
+            [$callback, $deps] = $watcher;
+
+            foreach ($changedStates as $state) {
+                if (in_array($state, $deps, true)) {
+                    $ok = true;
+                    break;
+                }
+            }
+
+            if ($ok) {
+                $callback();
+            }
         }
     }
 
@@ -234,26 +322,28 @@ class Page
         DB::connection(config('memogram.database.connection'))->transaction(function () use ($states, $states_hash) {
             $previousPage = $this->pageModel->exists
                 ? PageModel::query()
-                    ->where(['reference' => $this->pageModel->reference, 'states_hash' => $this->pageModel->states_hash])
+                    ->where(['reference' => $this->pageModel->reference, 'states_hash' => $this->pageModel->states_hash, 'version' => $this->pageModel->version])
                     ->lockForUpdate()
                     ->first()
                 : null;
 
             if ($previousPage && $previousPage->states_hash == $states_hash) {
                 $newPage = $previousPage;
-            } elseif ($_newPage = PageModel::query()->where(['reference' => $this->reference, 'states_hash' => $states_hash])->lockForUpdate()->first()) {
+            } elseif ($_newPage = PageModel::query()->where(['reference' => $this->getStringReference(), 'states_hash' => $states_hash, 'version' => $this->version])->lockForUpdate()->first()) {
                 $newPage = $_newPage;
             } elseif ($previousPage && $previousPage->uses()->count() == 1) {
                 $newPage = $previousPage;
                 $newPage->update([
                     'states' => $states,
                     'states_hash' => $states_hash,
+                    'version' => $this->version,
                 ]);
             } else {
                 $newPage = PageModel::create([
-                    'reference' => $this->reference,
+                    'reference' => $this->getStringReference(),
                     'states_hash' => $states_hash,
                     'states' => $states,
+                    'version' => $this->version,
                 ]);
             }
 
@@ -304,7 +394,7 @@ class Page
 
             if ($previousPage && $previousPage->states_hash == $states_hash) {
                 return;
-            } elseif ($_newPage = PageModel::query()->where(['reference' => $this->reference, 'states_hash' => $states_hash])->lockForUpdate()->first()) {
+            } elseif ($_newPage = PageModel::query()->where(['reference' => $this->getStringReference(), 'states_hash' => $states_hash])->lockForUpdate()->first()) {
                 $this->pageUseModel->update([
                     'page_id' => $_newPage->id,
                 ]);
@@ -356,5 +446,27 @@ class Page
                 $page->delete();
             }
         });
+    }
+
+    protected function getStringReference(): string
+    {
+        if (is_array($this->reference)) {
+            [$class, $method] = $this->reference;
+
+            return (is_object($class) ? $class::class : $class) . '@' . $method;
+        }
+
+        return $this->reference;
+    }
+
+    protected function getReferenceCaller(): array
+    {
+        [$class, $method] = is_array($this->reference) ? $this->reference : explode('@', $this->reference);
+
+        if (!is_object($class)) {
+            $class = app($class);
+        }
+
+        return [$class, $method];
     }
 }
