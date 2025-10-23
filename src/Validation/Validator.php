@@ -13,13 +13,13 @@ use MemoGram\Handle\Event;
 class Validator
 {
     use Concerns\ValidateUpdates,
-        Concerns\ValidationMessages;
+        Concerns\ValidateMessages;
 
     protected array $rules = [[]];
     protected array $errors;
 
     public function __construct(
-        protected Event $event,
+        protected ?Event $event,
     )
     {
     }
@@ -30,9 +30,9 @@ class Validator
         return $this;
     }
 
-    public function add(array|string $rules)
+    public function add($rule)
     {
-        array_push($this->rules[count($this->rules) - 1], ...Arr::wrap($rules));
+        array_push($this->rules[count($this->rules) - 1], ...ValidationRuleParser::explode($rule));
         return $this;
     }
 
@@ -82,6 +82,13 @@ class Validator
         return $this->errors;
     }
 
+    public function copyForEvent(Event $event): static
+    {
+        $validator = new static($event);
+        $validator->rules = $this->rules;
+        return $validator;
+    }
+
     protected function callRule(mixed $rule, Closure $fail): void
     {
         [$rule, $args] = ValidationRuleParser::parse($rule);
@@ -92,6 +99,8 @@ class Validator
             [$rule, $args] = ValidationRuleParser::parse($rule);
 
             $this->{'validate' . Str::pascal($rule)}($this->event, $fail, ...$args);
+        } elseif ($rule instanceof Closure) {
+            $rule($this->event, $fail);
         } else {
             $rule->validate($this->event, $fail);
         }

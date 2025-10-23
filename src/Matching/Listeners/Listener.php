@@ -3,11 +3,11 @@
 namespace MemoGram\Matching\Listeners;
 
 use MemoGram\Handle\Event;
-use MemoGram\Matching\MatcherHelper;
+use MemoGram\Matching\MatchHelper;
 
 interface Listener
 {
-    public function runCheck(Event $event, MatcherHelper $match): bool;
+    public function runCheck(Event $event, MatchHelper $match): bool;
 
     public function runAction(Event $event): void;
 }

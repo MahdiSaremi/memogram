@@ -8,7 +8,6 @@ class ForcePageResponse extends \Exception
 
     public function __construct(
         $response,
-        protected bool $refresh = false,
     )
     {
         $this->response = value($response);
@@ -19,10 +18,5 @@ class ForcePageResponse extends \Exception
     public function getResponse(): mixed
     {
         return $this->response;
-    }
-
-    public function getRefresh(): bool
-    {
-        return $this->refresh;
     }
 }

@@ -7,7 +7,7 @@ use MemoGram\Api\Types\InlineKeyboardButton;
 use MemoGram\Api\Types\InlineKeyboardMarkup;
 use MemoGram\Api\Types\ReplyParameters;
 use MemoGram\Handle\Page;
-use MemoGram\Matching\ListenerMatcher;
+use MemoGram\Matching\ListenerDispatcher;
 use MemoGram\Matching\Listeners\OnGlassKey;
 use MemoGram\Models\PageCellModel;
 use function MemoGram\Handle\api;
@@ -112,7 +112,7 @@ class GlassMessageResponse extends BaseResponse
 
     public function runListen(Page $page): void
     {
-        $page->topListenUsing(function (ListenerMatcher $match) {
+        $page->topListenUsing(function (ListenerDispatcher $match) {
             if ($schema = $this->getFormattedSchema()) {
                 foreach ($schema as $row) {
                     foreach ($row as $key) {

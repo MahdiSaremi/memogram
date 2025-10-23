@@ -4,7 +4,7 @@ namespace MemoGram\Matching\Listeners;
 
 use Closure;
 use MemoGram\Handle\Event;
-use MemoGram\Matching\MatcherHelper;
+use MemoGram\Matching\MatchHelper;
 
 class OnAny extends BaseListener
 {
@@ -13,10 +13,5 @@ class OnAny extends BaseListener
     )
     {
         $this->then($callback);
-    }
-
-    public function runCheck(Event $event, MatcherHelper $match): bool
-    {
-        return true;
     }
 }

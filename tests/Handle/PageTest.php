@@ -5,7 +5,7 @@ namespace MemoGram\Tests\Handle;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use MemoGram\Handle\Page;
 use MemoGram\Handle\State;
-use MemoGram\Matching\ListenerMatcher;
+use MemoGram\Matching\ListenerDispatcher;
 use MemoGram\Models\PageCellModel;
 use MemoGram\Models\PageModel;
 use MemoGram\Models\PageUseModel;
@@ -229,7 +229,7 @@ class _PageTestClass
         /** @var State<string> $foo */
         $foo = page()->useState(0);
 
-        page()->listenUsing(function (ListenerMatcher $match) use ($foo) {
+        page()->listenUsing(function (ListenerDispatcher $match) use ($foo) {
             $match->onAny(function () use ($foo) {
                 $foo->value++;
                 page()->refresh();
@@ -243,7 +243,7 @@ class _PageTestClass
     {
         $userId = page()->useState(fn() => event()->getUserId());
 
-        page()->listenUsing(function (ListenerMatcher $match) use ($userId) {
+        page()->listenUsing(function (ListenerDispatcher $match) use ($userId) {
             $match->onAny(function () use ($userId) {
                 $userId->value--;
                 page()->refresh();

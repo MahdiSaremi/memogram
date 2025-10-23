@@ -42,10 +42,6 @@ class ValidationRuleParser
      */
     protected function prepareRule($rule)
     {
-        if ($rule instanceof Closure) {
-            $rule = new ClosureValidationRule($rule);
-        }
-
         if (is_object($rule)) {
             return $rule;
         }

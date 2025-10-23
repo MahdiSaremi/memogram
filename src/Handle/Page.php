@@ -6,7 +6,8 @@ use Closure;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use MemoGram\Exceptions\ForcePageResponse;
-use MemoGram\Matching\ListenerMatcher;
+use MemoGram\Exceptions\StopPage;
+use MemoGram\Matching\ListenerDispatcher;
 use MemoGram\Models\PageCellModel;
 use MemoGram\Models\PageModel;
 use MemoGram\Models\PageUseModel;
@@ -30,13 +31,14 @@ class Page
     public ?PageUseModel $pageUseModel = null;
     /** @var Collection<int,PageCellModel> */
     public Collection $pageCells;
-    public ListenerMatcher $topListener;
-    public ListenerMatcher $listener;
+    public ListenerDispatcher $topListener;
+    public ListenerDispatcher $listener;
     protected bool $requireRefresh = false;
     protected bool $requireSave = false;
     protected array $watchers = [];
     protected array $lastWatcherResult = [];
     protected ?string $version = null;
+    protected mixed $replacedResponse = null;
 
     public function __construct(
         protected string|array $reference,
@@ -56,9 +58,10 @@ class Page
 
     protected function resetBasic(): void
     {
-        $this->listener = new ListenerMatcher();
-        $this->topListener = new ListenerMatcher();
+        $this->listener = new ListenerDispatcher();
+        $this->topListener = new ListenerDispatcher();
         $this->watchers = [];
+        $this->replacedResponse = null;
     }
 
     public function mount(array $params): void
@@ -71,6 +74,10 @@ class Page
         $this->version = null;
 
         $this->callReference(function ($response) {
+            if ($this->replacedResponse) {
+                $response = $this->replacedResponse;
+            }
+
             /**
              * @var string $key
              * @var AsResponse $response
@@ -100,14 +107,6 @@ class Page
              */
             foreach (context()->handler->normalizeResponse($response) as [$key, $response]) {
                 $response->runListen($this);
-            }
-        }, function ($response) {
-            /**
-             * @var string $key
-             * @var AsResponse $response
-             */
-            foreach (context()->handler->normalizeResponse($response) as [$key, $response]) {
-                $response->runRefresh($this, $key, $this->pageCells->firstWhere('key', $key));
             }
         });
     }
@@ -162,6 +161,18 @@ class Page
             return true;
         }
 
+        if ($this->replacedResponse) {
+            /**
+             * @var string $key
+             * @var AsResponse $response
+             */
+            foreach (context()->handler->normalizeResponse($this->replacedResponse) as [$key, $response]) {
+                $response->runRefresh($this, $key, $this->pageCells->firstWhere('key', $key));
+            }
+
+            return true;
+        }
+
         try {
             context()->handler->pageStack[] = $this;
             if ($this->topListener->pushEventAt($event, false)) {
@@ -186,6 +197,11 @@ class Page
     public function topListenUsing(Closure $callback): void
     {
         $callback($this->topListener);
+    }
+
+    public function replaceResponse($response): void
+    {
+
     }
 
     public function useState($defaultValue): State
@@ -241,13 +257,13 @@ class Page
 
         if ($this->status == self::STATUS_MOUNTING) {
             $this->version = $version;
-        } elseif ($this->status == self::STATUS_HYDRATING) {
+        } else {
             if ($this->version !== $version) {
-                if ($fail) {
-                    throw new ForcePageResponse($fail, true);
-                }
+                $this->replaceResponse($fail ?? function () {
+                    throw new \Exception("Version is old."); // todo
+                });
 
-                throw new \Exception("Version is old."); // todo
+                throw new StopPage();
             }
         }
     }
@@ -262,7 +278,7 @@ class Page
         return $this->params;
     }
 
-    protected function callReference(Closure $callback, ?Closure $refreshCallback = null): void
+    protected function callReference(Closure $callback): void
     {
         [$class, $method] = $this->getReferenceCaller();
 
@@ -273,9 +289,11 @@ class Page
                 $class->$method(),
             );
         } catch (ForcePageResponse $pageResponse) {
-            (($pageResponse->getRefresh() ? $refreshCallback : null) ?? $callback)(
+            $callback(
                 $pageResponse->getResponse(),
             );
+        } catch (StopPage) {
+            $callback(null);
         } finally {
             array_pop(context()->handler->pageStack);
         }

@@ -5,7 +5,7 @@ namespace MemoGram\Handle;
 use Closure;
 use Illuminate\Database\Eloquent\Collection;
 use MemoGram\Api\TelegramApi;
-use MemoGram\Matching\ListenerMatcher;
+use MemoGram\Matching\ListenerDispatcher;
 use MemoGram\Models\PageCellModel;
 use MemoGram\Models\PageModel;
 use MemoGram\Models\PageUseModel;
@@ -16,7 +16,7 @@ class EventHandler
 {
     public static ?Context $current = null;
 
-    protected ListenerMatcher $staticListener;
+    protected ListenerDispatcher $staticListener;
 
     /**
      * @var Page[]
@@ -27,7 +27,7 @@ class EventHandler
         public TelegramApi $api,
     )
     {
-        $this->staticListener = new ListenerMatcher();
+        $this->staticListener = new ListenerDispatcher();
     }
 
     public function routes(string|Closure $path): void

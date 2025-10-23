@@ -3,7 +3,7 @@
 namespace MemoGram\Matching\Listeners;
 
 use MemoGram\Handle\Event;
-use MemoGram\Matching\MatcherHelper;
+use MemoGram\Matching\MatchHelper;
 use MemoGram\Response\GlassKey;
 use MemoGram\Response\Key;
 use function MemoGram\Handle\context;
@@ -16,10 +16,11 @@ class OnGlassKey extends BaseListener
     {
     }
 
-    public function runCheck(Event $event, MatcherHelper $match): bool
+    public function runCheck(Event $event, MatchHelper $match): bool
     {
         return $match->beCallbackQuery($event, $callbackQuery)
-            && $callbackQuery->data === self::getDataOf($this->key);
+            && $callbackQuery->data === self::getDataOf($this->key)
+            && parent::runCheck($event, $match);
     }
 
     public function runAction(Event $event): void

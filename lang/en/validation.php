@@ -1,5 +1,7 @@
 <?php
 
+use MemoGram\Api\Types\Message;
+
 return [
     'be_update' => "Only telegram update allowed.",
     'be_message' => "Only message allowed.",
@@ -14,4 +16,34 @@ return [
     'max_number' => "Number should be smaller than :max.",
     'min_length' => "Length should be bigger than :min.",
     'max_length' => "Length should be smaller than :max.",
+    'message_type' => "Message type should be :type.",
+    'message_types' => [
+        Message::TYPE_PHOTO => 'photo',
+        Message::TYPE_CONTACT => 'contact',
+        Message::TYPE_LOCATION => 'location',
+        Message::TYPE_VIDEO => 'video',
+        Message::TYPE_VOICE => 'voice',
+        Message::TYPE_AUDIO => 'audio',
+        Message::TYPE_STICKER => 'sticker',
+        Message::TYPE_ANIMATION => 'animation',
+        Message::TYPE_STORY => 'story',
+        Message::TYPE_VIDEO_NOTE => 'video_note',
+        Message::TYPE_DICE => 'dice',
+        Message::TYPE_GAME => 'game',
+        Message::TYPE_DOCUMENT => 'document',
+        Message::TYPE_POLL => 'poll',
+        Message::TYPE_VENUE => 'venue',
+        Message::TYPE_NEW_CHAT_MEMBERS => 'new_chat_members',
+        Message::TYPE_LEFT_CHAT_MEMBER => 'left_chat_member',
+        Message::TYPE_NEW_CHAT_TITLE => 'new_chat_title',
+        Message::TYPE_DELETE_CHAT_PHOTO => 'delete_chat_photo',
+        Message::TYPE_GROUP_CHAT_CREATED => 'group_chat_created',
+        Message::TYPE_SUPERGROUP_CHAT_CREATED => 'supergroup_chat_created',
+        Message::TYPE_CHANNEL_CHAT_CREATED => 'channel_chat_created',
+        Message::TYPE_USERS_SHARED => 'users_shared',
+        Message::TYPE_CHAT_SHARED => 'chat_shared',
+        Message::TYPE_MEDIA => 'media',
+        Message::TYPE_TEXT => 'text',
+        Message::TYPE_UNKNOWN => 'unknown',
+    ],
 ];

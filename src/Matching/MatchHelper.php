@@ -7,7 +7,7 @@ use MemoGram\Api\Types\Message;
 use MemoGram\Api\Types\Update;
 use MemoGram\Handle\Event;
 
-class MatcherHelper
+class MatchHelper
 {
     public function beMessage(Event $event, ?Message &$out): bool
     {
@@ -29,29 +29,24 @@ class MatcherHelper
         return false;
     }
 
-    public function messageMatchType(Message $message, array $types, ?string &$out): bool
+    public function messageMatchType(Message $message, ?array $types, ?string &$out): bool
     {
-        foreach ($types as $type) {
-            if ($type == '*') {
-                $out = isset($message->text) ? 'text' : '*';
-                return true;
-            }
+        $actualType = $message->getType();
 
-            if (isset($message->{$type})) {
-                $out = $type;
-                return true;
-            }
+        if ($types === null || in_array($actualType, $types, true)) {
+            $out = $actualType;
+            return true;
         }
 
         return false;
     }
 
-    public function messageText(Message $message, string $type, false|string|null $expect): bool
+    public function messageText(Message $message, false|string|null $expect): bool
     {
         if ($expect === false) {
             return true;
         }
 
-        return ($type === 'text' ? $message->text : $message->caption) === $expect;
+        return ($message->caption ?? $message->text) === $expect;
     }
 }

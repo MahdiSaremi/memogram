@@ -12,9 +12,9 @@ use MemoGram\Matching\Listeners\OnMessage;
 use MemoGram\Response\GlassKey;
 use MemoGram\Response\Key;
 
-class ListenerMatcher
+class ListenerDispatcher
 {
-    public static ?ListenerMatcher $current = null;
+    public static ?ListenerDispatcher $current = null;
     public static bool $continue = false;
 
     /**
@@ -59,16 +59,21 @@ class ListenerMatcher
         }
     }
 
+    public static function continue(): void
+    {
+        static::$continue = true;
+    }
+
     public function pushEventAt(Event $event, bool $atFirst): bool
     {
-        $matcher = new MatcherHelper();
+        $helper = new MatchHelper();
 
         foreach ($this->listeners as $listener) {
             if ($atFirst !== @$listener->atFirst ?? false) {
                 continue;
             }
 
-            if ($listener->runCheck($event, $matcher)) {
+            if ($listener->runCheck($event, $helper)) {
                 $old = static::$continue;
 
                 try {

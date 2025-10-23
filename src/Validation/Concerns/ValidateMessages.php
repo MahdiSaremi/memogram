@@ -5,7 +5,7 @@ namespace MemoGram\Validation\Concerns;
 use MemoGram\Api\Types\Message;
 use MemoGram\Handle\Event;
 
-trait ValidationMessages
+trait ValidateMessages
 {
     protected null|int|float $validatedNumber = null;
     protected null|string $validatedText = null;
@@ -37,6 +37,17 @@ trait ValidationMessages
 
         $fail('memogram::validation.text')->translate();
         return null;
+    }
+
+    protected function validateMessageType(Event $event, $fail, string $type): void
+    {
+        if (!$message = $this->validateMessage($event, $fail)) {
+            return;
+        }
+
+        if ($message->getType() != $type) {
+            $fail('memogram::validation.message_type')->translate(['type' => __('memogram::validation.message_types.' . $type)]);
+        }
     }
 
     protected function validateParagraph(Event $event, $fail): ?string

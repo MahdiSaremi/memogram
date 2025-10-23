@@ -7,7 +7,7 @@ namespace MemoGram\Api\Types;
 use MemoGram\Api\Concerns;
 {{ $uses }}
 
-class {{ $class }} implements Event
+class {{ $class }}
 {
     use Concerns\Data;
 

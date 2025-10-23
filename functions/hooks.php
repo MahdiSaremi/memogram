@@ -4,7 +4,7 @@ namespace MemoGram\Hooks;
 
 use Closure;
 use MemoGram\Handle\State;
-use MemoGram\Matching\ListenerMatcher;
+use MemoGram\Matching\ListenerDispatcher;
 use MemoGram\Matching\Listeners\OnAny;
 use MemoGram\Matching\Listeners\OnMessage;
 use MemoGram\Response\DeleteResponse;
@@ -88,9 +88,9 @@ function glassKey(string $text, ?string $id = null, ?string $url = null): GlassK
     return new GlassKey($text, $id, $url);
 }
 
-function currentListener(): ListenerMatcher
+function currentListener(): ListenerDispatcher
 {
-    return ListenerMatcher::$current ?? page()->listener;
+    return ListenerDispatcher::$current ?? page()->listener;
 }
 
 function onAny(Closure $callback): OnAny

@@ -7,13 +7,13 @@ use function MemoGram\Handle\getEvent;
 
 class Validation
 {
-    public function make(array $rules, ?Event $event = null): Validator
+    public static function make($rule, ?Event $event = null): Validator
     {
-        return (new Validator($event ?? getEvent()))->add($rules);
+        return (new Validator($event ?? getEvent()))->add($rule);
     }
 
-    public function validate(array $rules, ?Event $event = null): void
+    public static function validate($rule, ?Event $event = null): void
     {
-        $this->make($rules, $event)->validate();
+        static::make($rule, $event)->validate();
     }
 }

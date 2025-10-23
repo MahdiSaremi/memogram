@@ -69,7 +69,7 @@ use MemoGram\Api\Types\WebAppData;
 use MemoGram\Api\Types\InlineKeyboardMarkup;
 
 
-class Message implements Event
+class Message
 {
     use Concerns\Data;
 

@@ -6,7 +6,7 @@ use MemoGram\Api\Types\KeyboardButton;
 use MemoGram\Api\Types\ReplyKeyboardMarkup;
 use MemoGram\Api\Types\ReplyParameters;
 use MemoGram\Handle\Page;
-use MemoGram\Matching\ListenerMatcher;
+use MemoGram\Matching\ListenerDispatcher;
 use MemoGram\Models\PageCellModel;
 use function MemoGram\Handle\api;
 use function MemoGram\Handle\context;
@@ -79,7 +79,7 @@ class MessageResponse extends BaseResponse
 
     public function runListen(Page $page): void
     {
-        $page->topListenUsing(function (ListenerMatcher $match) {
+        $page->topListenUsing(function (ListenerDispatcher $match) {
             if ($schema = $this->getFormattedSchema()) {
                 foreach ($schema as $row) {
                     foreach ($row as $key) {
