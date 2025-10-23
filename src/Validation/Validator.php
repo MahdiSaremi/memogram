@@ -63,6 +63,9 @@ class Validator
                     $this->errors[] = $lastError->toString();
                     $lastError = null;
                     break;
+                } else {
+                    $this->errors = [];
+                    return true;
                 }
             }
         }

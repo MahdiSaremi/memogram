@@ -6,7 +6,7 @@ use Closure;
 
 class Key
 {
-    public ?Closure $then = null;
+    public mixed $then = null;
     public bool $atFirst = false;
 
     public function __construct(
@@ -15,7 +15,7 @@ class Key
     {
     }
 
-    public function then(Closure $callback)
+    public function then($callback)
     {
         $this->then = $callback;
         return $this;

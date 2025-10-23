@@ -291,7 +291,7 @@ class Page
 
         $changedStates = [];
         foreach ($this->states as $state) {
-            if ($state->isChanged) {
+            if ($state->dirty()) {
                 $changedStates[] = $state;
             }
         }

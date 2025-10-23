@@ -2,6 +2,8 @@
 
 namespace MemoGram\Response;
 
+use Closure;
+use Illuminate\Support\Facades\Pipeline;
 use MemoGram\Api\Types\KeyboardButton;
 use MemoGram\Api\Types\ReplyKeyboardMarkup;
 use MemoGram\Api\Types\ReplyParameters;
@@ -9,15 +11,16 @@ use MemoGram\Handle\Page;
 use MemoGram\Matching\ListenerDispatcher;
 use MemoGram\Models\PageCellModel;
 use function MemoGram\Handle\api;
-use function MemoGram\Handle\context;
 use function MemoGram\Handle\event;
 
 class MessageResponse extends BaseResponse
 {
     public ?string $message = null;
     public ?array $schema = null;
+    protected array $schemaUsing = [];
     public bool $resetKeyboard = false;
     public ?bool $save = null;
+    protected ?bool $takeControl = null;
 
     public function message(?string $message)
     {
@@ -31,15 +34,27 @@ class MessageResponse extends BaseResponse
         return $this;
     }
 
+    public function schemaUsing(Closure $callback)
+    {
+        $this->schemaUsing[] = $callback;
+        return $this;
+    }
+
     public function resetKeyboard()
     {
         $this->resetKeyboard = true;
         return $this;
     }
 
-    public function save(?bool $save = true)
+    public function save(?bool $value = true)
     {
-        $this->save = $save;
+        $this->save = $value;
+        return $this;
+    }
+
+    public function takeControl(?bool $value = true)
+    {
+        $this->takeControl = $value;
         return $this;
     }
 
@@ -61,12 +76,12 @@ class MessageResponse extends BaseResponse
             reply_markup: $keyboardMarkup,
         );
 
-        if ($this->save ?? $keyboardMarkup) {
+        if ($this->save ?? ($this->takeControl || $keyboardMarkup)) {
             $page->pageCells->push(
                 new PageCellModel([
                     'message_id' => $message->message_id,
                     'key' => $key,
-                    'is_taking_control' => $keyboardMarkup !== null,
+                    'is_taking_control' => $this->takeControl ?? ($keyboardMarkup !== null),
                 ]),
             );
         }
@@ -92,18 +107,25 @@ class MessageResponse extends BaseResponse
         });
     }
 
+    protected function getSchema(): array
+    {
+        return Pipeline::through($this->schemaUsing)
+            ->send($this->schema ?? [])
+            ->thenReturn();
+    }
+
     /**
      * @return Key[][]
      */
     protected function getFormattedSchema(): array
     {
-        if (!$this->schema) {
+        if (!$schema = $this->getSchema()) {
             return [];
         }
 
         $all = [];
 
-        foreach ($this->schema as $row) {
+        foreach ($schema as $row) {
             if (is_null($row) || $row === false) continue;
 
             $rowKey = [];

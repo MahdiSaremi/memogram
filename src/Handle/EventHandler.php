@@ -11,6 +11,7 @@ use MemoGram\Models\PageModel;
 use MemoGram\Models\PageUseModel;
 use MemoGram\Response\AsResponse;
 use MemoGram\Response\MessageResponse;
+use function MemoGram\Hooks\open;
 
 class EventHandler
 {
@@ -157,8 +158,13 @@ class EventHandler
     }
 
 
-    public function runAction(Closure $callback, array $args = []): void
+    public function runAction($callback, array $args = []): void
     {
+        if (is_string($callback) || is_array($callback)) {
+            open($callback);
+            return;
+        }
+
         context()->handler->handleResponse(
             $callback(...$args),
         );
