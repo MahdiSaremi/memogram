@@ -78,13 +78,9 @@ class Page
                 $response = $this->replacedResponse;
             }
 
-            /**
-             * @var string $key
-             * @var AsResponse $response
-             */
-            foreach (context()->handler->normalizeResponse($response) as [$key, $response]) {
+            eventHandler()->streamResponse($response, function (AsResponse $response, string $key) {
                 $response->runResponse($this, $key);
-            }
+            });
         });
         $this->updateDatabase();
     }
@@ -101,13 +97,9 @@ class Page
         $this->hydratedStates = $use->page->states;
 
         $this->callReference(function ($response) {
-            /**
-             * @var string $key
-             * @var AsResponse $response
-             */
-            foreach (context()->handler->normalizeResponse($response) as [$key, $response]) {
+            eventHandler()->streamResponse($response, function (AsResponse $response, string $key) {
                 $response->runListen($this);
-            }
+            });
         });
     }
 
@@ -126,13 +118,9 @@ class Page
             $this->pageCells = new Collection();
 
             $this->callReference(function ($response) use ($cells) {
-                /**
-                 * @var string $key
-                 * @var AsResponse $response
-                 */
-                foreach (context()->handler->normalizeResponse($response) as [$key, $response]) {
+                eventHandler()->streamResponse($response, function (AsResponse $response, string $key) use ($cells) {
                     $response->runRefresh($this, $key, $cells->firstWhere('key', $key));
-                }
+                });
             });
             $this->updateDatabase();
         } elseif ($this->requireSave) {
@@ -162,13 +150,9 @@ class Page
         }
 
         if ($this->replacedResponse) {
-            /**
-             * @var string $key
-             * @var AsResponse $response
-             */
-            foreach (context()->handler->normalizeResponse($this->replacedResponse) as [$key, $response]) {
+            eventHandler()->streamResponse($this->replacedResponse, function (AsResponse $response, string $key) {
                 $response->runRefresh($this, $key, $this->pageCells->firstWhere('key', $key));
-            }
+            });
 
             return true;
         }

@@ -14,6 +14,7 @@ class OnKey extends BaseListener
         public Key $key,
     )
     {
+        $this->atFirst = $key->atFirst;
     }
 
     public function runCheck(Event $event, MatchHelper $match): bool

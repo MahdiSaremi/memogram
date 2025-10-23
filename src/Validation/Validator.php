@@ -82,6 +82,15 @@ class Validator
         return $this->errors;
     }
 
+    public function error(): ?string
+    {
+        if ($this->passes()) {
+            return null;
+        }
+
+        return $this->errors[0];
+    }
+
     public function copyForEvent(Event $event): static
     {
         $validator = new static($event);

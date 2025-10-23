@@ -3,6 +3,7 @@
 namespace MemoGram\Hooks;
 
 use Closure;
+use MemoGram\Exceptions\StopPage;
 use MemoGram\Handle\State;
 use MemoGram\Matching\ListenerDispatcher;
 use MemoGram\Matching\Listeners\OnAny;
@@ -91,6 +92,16 @@ function glassKey(string $text, ?string $id = null, ?string $url = null): GlassK
 function currentListener(): ListenerDispatcher
 {
     return ListenerDispatcher::$current ?? page()->listener;
+}
+
+function stopPage(): never
+{
+    throw new StopPage();
+}
+
+function replaceResponse($response): void
+{
+    page()->replaceResponse($response);
 }
 
 function onAny(Closure $callback): OnAny

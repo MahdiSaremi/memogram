@@ -60,8 +60,66 @@ Listeners:
 ```php
 public function myPage()
 {
-    onAny()
+    onAny(function () {
+        return "Hello world";
+    });
+    onMessage("Bar")->then(function () {
+        return "Baz";
+    });
 
     return "Something...";
+}
+```
+
+Validations:
+
+```php
+Validation::make(['update', 'message', 'text', 'max:255'])->validate();
+```
+
+## Extra
+
+Trap Join
+
+routes/bot.php:
+```php
+onCommand('/start {inviter}', function ($inviter) {
+    open([StartSection::class, 'start'], ['inviter' => $inviter]);
+});
+```
+
+StartSection.php:
+```php
+class StartSection
+{
+    public function start()
+    {
+        $inviter = useParam('inviter');
+        
+        if (mounting()) {
+            if ($this->joined()) {
+                $this->giveInviteCoin($inviter);
+                open([HomeSection::class, 'main']);
+                return;
+            }
+        };
+        
+        onAny(function () {
+            return "You should join the channels first.";
+        })->atFirst();
+        
+        return messageResponse("First join the channels.")
+            ->schema([
+                [key("Check")->atFirst()->then(function {
+                    if ($this->joined()) {
+                        $this->giveInviteCoin($inviter);
+                        yield "Good job!";
+                        open([HomeSection::class, 'main']);
+                    } else {
+                        yield "You're not joined yet!";
+                    }
+                })],
+            ])
+    }
 }
 ```

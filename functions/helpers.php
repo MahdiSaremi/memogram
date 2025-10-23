@@ -20,6 +20,11 @@ namespace MemoGram\Handle {
         return context()?->event;
     }
 
+    function eventHandler(): ?EventHandler
+    {
+        return context()?->handler;
+    }
+
     function api(): ?TelegramApi
     {
         return context()->handler->api;

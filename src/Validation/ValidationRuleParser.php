@@ -40,7 +40,7 @@ class ValidationRuleParser
      * @param mixed $rule
      * @return mixed
      */
-    protected function prepareRule($rule)
+    protected static function prepareRule($rule)
     {
         if (is_object($rule)) {
             return $rule;

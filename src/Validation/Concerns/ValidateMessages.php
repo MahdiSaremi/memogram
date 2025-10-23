@@ -39,14 +39,24 @@ trait ValidateMessages
         return null;
     }
 
-    protected function validateMessageType(Event $event, $fail, string $type): void
+    protected function validateMessageType(Event $event, $fail, string ...$types): void
     {
         if (!$message = $this->validateMessage($event, $fail)) {
             return;
         }
 
-        if ($message->getType() != $type) {
-            $fail('memogram::validation.message_type')->translate(['type' => __('memogram::validation.message_types.' . $type)]);
+        if (!in_array($message->getType(), $types, true)) {
+            $typeStr = array_reduce(array_keys($types), function (string $carry, int $i) use ($types) {
+                $sep = match ($i) {
+                    0 => '',
+                    count($types) - 1 => __('memogram::generic.list_last_separator'),
+                    default => __('memogram::generic.list_separator'),
+                };
+
+                return $carry . $sep . __('memogram::validation.message_types.' . $types[$i]);
+            }, '');
+
+            $fail('memogram::validation.message_type')->translate(['type' => $typeStr]);
         }
     }
 

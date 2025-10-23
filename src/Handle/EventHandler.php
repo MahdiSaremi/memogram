@@ -167,55 +167,39 @@ class EventHandler
 
     public function handleResponse(mixed $response): void
     {
-        $responses = $this->normalizeResponse($response);
-
-        /**
-         * @var string $key
-         * @var AsResponse $response
-         */
-        foreach ($responses as [$key, $response]) {
+        $this->streamResponse($response, function (AsResponse $response, string $key) {
             $response->runResponse($this->pageStack ? end($this->pageStack) : null, $key);
-        }
+        });
     }
 
-    /**
-     * @param mixed $response
-     * @return array<(AsResponse|string)[]>
-     */
-    public function normalizeResponse(mixed $response): array
+    public function streamResponse(mixed $response, Closure $callback): void
     {
-        return $this->assignResponsesKey($this->responseToArray($response));
+        $this->streamSubResponse($response, $callback);
     }
 
-    protected function responseToArray(mixed $response): array
+    protected function streamSubResponse(mixed $response, Closure $callback, string $id = null): void
     {
-        return match (true) {
-            is_null($response)
-            => [],
-
-            is_string($response)
-            => [(new MessageResponse())->message($response)],
-
-            is_array($response)
-            => collect($response)->map($this->responseToArray(...))->flatten(1)->all(),
-
-            $response instanceof \Iterator
-            => collect(iterator_to_array($response))->map($this->responseToArray(...))->flatten(1)->all(),
-
-            is_object($response)
-            => [$response],
-        };
-    }
-
-    protected function assignResponsesKey(array $responses): array
-    {
-        $all = [];
-        foreach ($responses as $index => $response) {
-            $key = $response->id ?? "$index";
-
-            $all[] = [$key, $response];
+        if (is_null($response)) {
+            return;
         }
 
-        return $all;
+        if (is_string($response)) {
+            $callback((new MessageResponse())->message($response), $id ?? '0');
+            return;
+        }
+
+        if (is_array($response) || $response instanceof \Iterator) {
+            foreach ($response as $_id => $resp) {
+                $this->streamSubResponse($resp, $callback, is_int($_id) ? (($id !== null ? $id . '.' : '') . $_id) : $_id);
+            }
+            return;
+        }
+
+        if ($response instanceof AsResponse) {
+            $callback($response, $response->id ?? $id ?? '0');
+            return;
+        }
+
+        throw new \TypeError("Expected AsResponse type, got " . is_object($response) ? get_class($response) : gettype($response));
     }
 }
