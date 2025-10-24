@@ -59,6 +59,15 @@ class State extends ReadonlyState
         }
 
         $this->storeUsing = $store;
+        return $this;
+    }
+
+    public function serialize()
+    {
+        return $this->using(
+            store: serialize(...),
+            restore: unserialize(...),
+        );
     }
 
     public function markAsDirty(): void

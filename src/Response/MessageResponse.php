@@ -95,7 +95,7 @@ class MessageResponse extends BaseResponse
     public function runListen(Page $page): void
     {
         $page->topListenUsing(function (ListenerDispatcher $match) {
-            if ($schema = $this->getFormattedSchema()) {
+            if ($schema = $this->getFormattedSchema(false)) {
                 foreach ($schema as $row) {
                     foreach ($row as $key) {
                         if ($key->then) {
@@ -117,7 +117,7 @@ class MessageResponse extends BaseResponse
     /**
      * @return Key[][]
      */
-    protected function getFormattedSchema(): array
+    protected function getFormattedSchema(bool $onlyVisible): array
     {
         if (!$schema = $this->getSchema()) {
             return [];
@@ -130,8 +130,9 @@ class MessageResponse extends BaseResponse
 
             $rowKey = [];
 
+            /** @var null|false|Key $column */
             foreach ($row as $column) {
-                if (is_null($column) || $column === false) continue;
+                if (is_null($column) || $column === false || !$column->interactable || ($onlyVisible && !$column->visible)) continue;
 
                 $rowKey[] = $column;
             }
@@ -146,7 +147,7 @@ class MessageResponse extends BaseResponse
 
     protected function getFormattedKeyboardMarkup(): ?ReplyKeyboardMarkup
     {
-        $schema = $this->getFormattedSchema();
+        $schema = $this->getFormattedSchema(true);
 
         if (!$schema) {
             return null;

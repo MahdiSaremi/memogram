@@ -219,6 +219,11 @@ class Page
         }
     }
 
+    public function useGarbageState($defaultValue): GarbageState
+    {
+        return new GarbageState($this->useState($defaultValue));
+    }
+
     public function useWatch(Closure $callback, array $dependencyList): mixed
     {
         $this->watchers[] = [

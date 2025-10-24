@@ -141,8 +141,9 @@ class GlassMessageResponse extends BaseResponse
 
             $rowKey = [];
 
+            /** @var null|false|GlassKey $column */
             foreach ($row as $column) {
-                if (is_null($column) || $column === false) continue;
+                if (is_null($column) || $column === false || !$column->interactable) continue;
 
                 $rowKey[] = $column;
             }

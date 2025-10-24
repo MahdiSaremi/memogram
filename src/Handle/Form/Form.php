@@ -24,9 +24,9 @@ class Form
     {
     }
 
-    public static function use(): static
+    public static function use(array $default = []): static
     {
-        $values = page()->useState([]);
+        $values = page()->useState($default);
 
         return new static($values);
     }

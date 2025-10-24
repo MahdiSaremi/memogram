@@ -5,6 +5,7 @@ namespace MemoGram\Hooks;
 use Closure;
 use MemoGram\Exceptions\StopPage;
 use MemoGram\Handle\Form\Form;
+use MemoGram\Handle\GarbageState;
 use MemoGram\Handle\State;
 use MemoGram\Matching\ListenerDispatcher;
 use MemoGram\Matching\Listeners\OnAny;
@@ -19,6 +20,11 @@ use function MemoGram\Handle\page;
 function useState($defaultValue): State
 {
     return page()->useState($defaultValue);
+}
+
+function useGarbageState($defaultValue): GarbageState
+{
+    return page()->useGarbageState($defaultValue);
 }
 
 function useWatch(Closure $callback, array $dependencyList)
@@ -44,9 +50,9 @@ function useParam(string $name): State
     return useState(fn() => getParam($name));
 }
 
-function useForm(): Form
+function useForm(array $default = []): Form
 {
-    return Form::use();
+    return Form::use($default);
 }
 
 function refresh(): void
@@ -85,9 +91,9 @@ function deleteResponse(?string $id = null): DeleteResponse
     return (new DeleteResponse)->when($id !== null)->id($id);
 }
 
-function key(string $text): Key
+function key(string $text, $then = null): Key
 {
-    return new Key($text);
+    return (new Key($text))->when($then !== null)->then($then);
 }
 
 function glassKey(string $text, ?string $id = null, ?string $url = null): GlassKey

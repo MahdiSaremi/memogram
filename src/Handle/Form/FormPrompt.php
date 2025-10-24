@@ -41,6 +41,7 @@ class FormPrompt
     public function onlyKeys()
     {
         $this->validator->add('fail', __('memogram::form.only_keys'));
+        return $this;
     }
 
     public function value(Closure $callback)

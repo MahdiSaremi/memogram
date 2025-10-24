@@ -47,4 +47,9 @@ namespace MemoGram\Handle {
 
         return null;
     }
+
+    function pushEvent(Event $event): void
+    {
+        eventHandler()->handle($event);
+    }
 }
