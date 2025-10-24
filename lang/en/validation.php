@@ -3,6 +3,7 @@
 use MemoGram\Api\Types\Message;
 
 return [
+    'fail' => "Not allowed.",
     'be_update' => "Only telegram update allowed.",
     'be_message' => "Only message allowed.",
     'text' => "Only text allowed.",

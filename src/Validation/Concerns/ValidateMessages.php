@@ -16,7 +16,7 @@ trait ValidateMessages
             return null;
         }
 
-        if ($update->message) {
+        if ($update->message !== null) {
             return $update->message;
         }
 
@@ -116,7 +116,7 @@ trait ValidateMessages
         $this->validatedNumber = +$text;
     }
 
-    protected function validateUnsignedInt(Event $event, $fail): void
+    protected function validateUnsignedInteger(Event $event, $fail): void
     {
         if (null === $text = $this->validateText($event, $fail)) {
             return;

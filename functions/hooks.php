@@ -4,6 +4,7 @@ namespace MemoGram\Hooks;
 
 use Closure;
 use MemoGram\Exceptions\StopPage;
+use MemoGram\Handle\Form\Form;
 use MemoGram\Handle\State;
 use MemoGram\Matching\ListenerDispatcher;
 use MemoGram\Matching\Listeners\OnAny;
@@ -41,6 +42,11 @@ function useVersion($version, $fail = null): void
 function useParam(string $name): State
 {
     return useState(fn() => getParam($name));
+}
+
+function useForm(): Form
+{
+    return Form::use();
 }
 
 function refresh(): void

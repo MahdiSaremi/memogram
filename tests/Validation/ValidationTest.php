@@ -26,4 +26,31 @@ class ValidationTest extends TestCase
         $this->assertFalse($validator->passes());
         $this->assertSame([__('memogram::validation.be_update')], $validator->errors());
     }
+
+    public function testValidationWithCustomMessage()
+    {
+        $validator = new Validator(new FakeEvent(1, 1, 1));
+        $validator->add('update', "Should be update");
+
+        $this->assertFalse($validator->passes());
+        $this->assertSame(["Should be update"], $validator->errors());
+
+        $validator = new Validator(new Update(1));
+        $validator->add(['update', 'message'], "Custom error");
+
+        $this->assertFalse($validator->passes());
+        $this->assertSame(["Custom error"], $validator->errors());
+
+        $validator = new Validator(new Update(1));
+        $validator->add(['update', 'message'], ["Update Error", "Message Error"]);
+
+        $this->assertFalse($validator->passes());
+        $this->assertSame(["Message Error"], $validator->errors());
+
+        $validator = new Validator(new Update(1));
+        $validator->add(['update', 'message'], ['message' => "Message Error"]);
+
+        $this->assertFalse($validator->passes());
+        $this->assertSame(["Message Error"], $validator->errors());
+    }
 }

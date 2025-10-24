@@ -4,6 +4,7 @@ namespace MemoGram\Handle\Form;
 
 use Closure;
 use MemoGram\Handle\State;
+use MemoGram\Response\Key;
 use function MemoGram\Handle\eventHandler;
 use function MemoGram\Handle\getEvent;
 use function MemoGram\Handle\page;
@@ -121,5 +122,13 @@ class Form
         });
 
         return $prompt;
+    }
+
+    public function option(string $text, $value): Key
+    {
+        return \MemoGram\Hooks\key($text)->then(function () use ($value) {
+            $this->set($this->currentPrompt()->name, $value);
+            refresh();
+        });
     }
 }

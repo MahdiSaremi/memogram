@@ -16,6 +16,7 @@ class Validator
         Concerns\ValidateMessages;
 
     protected array $rules = [[]];
+    protected array $specificMessages = [[]];
     protected array $errors;
 
     public function __construct(
@@ -27,12 +28,36 @@ class Validator
     public function or()
     {
         $this->rules[] = [];
+        $this->specificMessages[] = [];
         return $this;
     }
 
-    public function add($rule)
+    public function add($rule, $messages = [])
     {
-        array_push($this->rules[count($this->rules) - 1], ...ValidationRuleParser::explode($rule));
+        $rules = ValidationRuleParser::explode($rule);
+        $finalMessages = array_fill(0, count($rules), null);
+
+        if (!is_array($messages)) {
+            $messages = array_fill(0, count($rules), $messages);
+        }
+
+        foreach ($messages as $for => $message) {
+            if (is_string($for)) {
+                foreach ($rules as $index => $rule) {
+                    if ($rule === $for || (is_object($rule) && get_class($rule) === $for)) {
+                        $for = $index;
+                        break;
+                    }
+                }
+            }
+
+            if (array_key_exists($for, $finalMessages)) {
+                $finalMessages[$for] = $message;
+            }
+        }
+
+        array_push($this->rules[count($this->rules) - 1], ...$rules);
+        array_push($this->specificMessages[count($this->specificMessages) - 1], ...$finalMessages);
         return $this;
     }
 
@@ -55,18 +80,22 @@ class Validator
             return $lastError = new PotentiallyTranslatedString($message, app(Translator::class));
         };
 
-        foreach ($this->rules as $ruleList) {
-            foreach ($ruleList as $rule) {
+        foreach ($this->rules as $i => $ruleList) {
+            $rowError = null;
+            foreach ($ruleList as $j => $rule) {
                 $this->callRule($rule, $fail);
 
                 if ($lastError !== null) {
-                    $this->errors[] = $lastError->toString();
-                    $lastError = null;
+                    $rowError = $this->specificMessages[$i][$j] ?? $lastError->toString();
                     break;
-                } else {
-                    $this->errors = [];
-                    return true;
                 }
+            }
+
+            if ($rowError === null) {
+                $this->errors = [];
+                return true;
+            } else {
+                $this->errors[] = $rowError;
             }
         }
 
@@ -116,5 +145,10 @@ class Validator
         } else {
             $rule->validate($this->event, $fail);
         }
+    }
+
+    protected function validateFail(Event $event, $fail): void
+    {
+        $fail('memogram::validation.fail')->translate();
     }
 }

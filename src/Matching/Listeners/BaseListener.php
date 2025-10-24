@@ -33,10 +33,10 @@ abstract class BaseListener implements Listener
         return $this;
     }
 
-    public function pass($rule)
+    public function pass($rule, $messages = [])
     {
         if (!($rule instanceof Validator)) {
-            $rule = Validation::make($rule);
+            $rule = Validation::make($rule, $messages);
         }
 
         $this->validators[] = $rule;
