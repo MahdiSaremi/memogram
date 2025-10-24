@@ -40,19 +40,24 @@ class Form
                 ];
             },
         );
+
         return $this;
     }
 
-    public function withSkip($action, $text = null)
+    public function withSkip($value = null, $text = null)
     {
-        $this->responseUsing['cancel'] = static fn(FormResponse $response) => $response->schemaUsing(
-            static function (array $schema, $next) use ($action, $text): array {
-                return [
-                    ...$next($schema),
-                    [\MemoGram\Hooks\key($text ?? __('memogram::form.cancel'))->then($action)],
-                ];
+        $this->responseUsing['skip'] = fn(FormResponse $response) => $response->schemaUsing(
+            function (array $schema, $next) use ($value, $text): array {
+                return $next([
+                    [\MemoGram\Hooks\key($text ?? __('memogram::form.skip'))->then(function () use ($value) {
+                        $this->set($this->currentPrompt()->name, $value);
+                        refresh();
+                    })],
+                    ...$schema,
+                ]);
             },
         );
+
         return $this;
     }
 

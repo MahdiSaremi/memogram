@@ -5,6 +5,7 @@ namespace MemoGram\Handle;
 use Closure;
 use Illuminate\Database\Eloquent\Collection;
 use MemoGram\Api\TelegramApi;
+use MemoGram\Handle\Middleware\Middleware;
 use MemoGram\Matching\ListenerDispatcher;
 use MemoGram\Models\PageCellModel;
 use MemoGram\Models\PageModel;
@@ -157,6 +158,30 @@ class EventHandler
         $using($this->staticListener);
     }
 
+
+    /**
+     * @param Middleware[] $middlewares
+     * @param Closure $then
+     * @param array $args
+     * @return Closure
+     */
+    public function createMiddlewarePipeline(array $middlewares, Closure $then, array $args = []): Closure
+    {
+        if (!$middlewares && !$args) {
+            return $then;
+        }
+
+        $i = 0;
+        $next = static function () use ($args, $middlewares, &$i, $then, &$next) {
+            if ($i < count($middlewares)) {
+                return $middlewares[$i++]->handle($next);
+            } else {
+                return $then(...$args);
+            }
+        };
+
+        return $next;
+    }
 
     public function runAction($callback, array $args = []): void
     {

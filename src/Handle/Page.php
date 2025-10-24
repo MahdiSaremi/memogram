@@ -4,9 +4,11 @@ namespace MemoGram\Handle;
 
 use Closure;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use MemoGram\Exceptions\ForcePageResponse;
 use MemoGram\Exceptions\StopPage;
+use MemoGram\Handle\Middleware\Attributes\Middleware as MiddlewareAttribute;
 use MemoGram\Matching\ListenerDispatcher;
 use MemoGram\Models\PageCellModel;
 use MemoGram\Models\PageModel;
@@ -185,7 +187,7 @@ class Page
 
     public function replaceResponse($response): void
     {
-
+        $this->replacedResponse = value($response);
     }
 
     public function useState($defaultValue): State
@@ -198,7 +200,7 @@ class Page
 
             case self::STATUS_HYDRATING:
                 if ($this->statePointer < count($this->hydratedStates)) {
-                    return $this->states[$this->statePointer] = new State($this->hydratedStates[$this->statePointer++]);
+                    return $this->states[$this->statePointer] = new State($this->hydratedStates[$this->statePointer++], true);
                 } else {
                     return $this->states[$this->statePointer++] = new State(value($defaultValue));
 //                    throw new \Exception("State is not exists."); todo
@@ -264,13 +266,12 @@ class Page
 
     protected function callReference(Closure $callback): void
     {
-        [$class, $method] = $this->getReferenceCaller();
-
+        $invoker = $this->getReferenceCallbackWithMiddlewares();
         context()->handler->pageStack[] = $this;
 
         try {
             $callback(
-                $class->$method(),
+                $invoker(),
             );
         } catch (ForcePageResponse $pageResponse) {
             $callback(
@@ -281,6 +282,28 @@ class Page
         } finally {
             array_pop(context()->handler->pageStack);
         }
+    }
+
+    protected function getReferenceCallbackWithMiddlewares(): Closure
+    {
+        [$class, $method] = $this->getReferenceCaller();
+        $middlewares = [];
+
+        foreach ((new \ReflectionClass($class))->getAttributes(MiddlewareAttribute::class) as $attr) {
+            $attr = $attr->newInstance();
+            /** @var MiddlewareAttribute $attr */
+
+            array_push($middlewares, ...Arr::wrap($attr->middleware));
+        }
+
+        foreach ((new \ReflectionMethod($class, $method))->getAttributes(MiddlewareAttribute::class) as $attr) {
+            $attr = $attr->newInstance();
+            /** @var MiddlewareAttribute $attr */
+
+            array_push($middlewares, ...Arr::wrap($attr->middleware));
+        }
+
+        return eventHandler()->createMiddlewarePipeline($middlewares, $class->$method(...));
     }
 
     protected function callWatchers(): void
@@ -325,7 +348,7 @@ class Page
         }
 
         $states = array_map(function (State $state) {
-            return $state->value;
+            return $state->getStorableValue();
         }, $this->states);
         $states_hash = md5(json_encode($states));
 
@@ -390,7 +413,7 @@ class Page
     protected function updateDatabaseStates(): void
     {
         $states = array_map(function (State $state) {
-            return $state->value;
+            return $state->getStorableValue();
         }, $this->states);
         $states_hash = md5(json_encode($states));
 

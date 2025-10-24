@@ -10,6 +10,7 @@ class ReadonlyState
 {
     public function __construct(
         protected mixed $_value,
+        protected bool  $restored = false,
     )
     {
     }

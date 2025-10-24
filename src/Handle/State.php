@@ -2,6 +2,9 @@
 
 namespace MemoGram\Handle;
 
+use Closure;
+use MemoGram\Support\Type;
+
 /**
  * @template T
  * @property T $value
@@ -9,13 +12,17 @@ namespace MemoGram\Handle;
  */
 class State extends ReadonlyState
 {
+    use Concerns\ManagesTypes;
+
     protected bool $isDirty = false;
     protected mixed $previousValue;
     protected string $serializedPreviousValue;
+    protected Type $type;
+    protected ?Closure $storeUsing = null;
 
-    public function __construct(mixed $_value)
+    public function __construct(mixed $_value, bool $restored = false)
     {
-        parent::__construct($_value);
+        parent::__construct($_value, $restored);
         $this->sync();
     }
 
@@ -39,6 +46,21 @@ class State extends ReadonlyState
         throw new \InvalidArgumentException("Property [$name] does not exist.");
     }
 
+    public function type(string|array $valid)
+    {
+        $this->type = Type::from($valid);
+        return $this;
+    }
+
+    public function using(Closure $store, Closure $restore)
+    {
+        if ($this->restored) {
+            $this->_value = $restore($this->_value);
+        }
+
+        $this->storeUsing = $store;
+    }
+
     public function markAsDirty(): void
     {
         $this->isDirty = true;
@@ -60,5 +82,10 @@ class State extends ReadonlyState
         } else {
             unset($this->serializedPreviousValue);
         }
+    }
+
+    public function getStorableValue(): mixed
+    {
+        return $this->storeUsing ? ($this->storeUsing)($this->_value) : $this->_value;
     }
 }

@@ -2,4 +2,5 @@
 
 return [
     'cancel' => "Cancel",
+    'skip' => "Skip",
 ];

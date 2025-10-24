@@ -130,7 +130,7 @@ trait ValidateMessages
         $this->validatedNumber = (int)+$text;
     }
 
-    protected function validateInt(Event $event, $fail): void
+    protected function validateInteger(Event $event, $fail): void
     {
         if (null === $text = $this->validateText($event, $fail)) {
             return;
