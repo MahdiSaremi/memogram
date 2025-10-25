@@ -2,6 +2,7 @@
 
 namespace MemoGram\Handle {
 
+    use Closure;
     use MemoGram\Api\TelegramApi;
     use MemoGram\Api\Types\Update;
 
@@ -51,5 +52,14 @@ namespace MemoGram\Handle {
     function pushEvent(Event $event): void
     {
         eventHandler()->handle($event);
+    }
+
+    function handleAs(TelegramApi|EventHandler $api, Closure $callback): void
+    {
+        if ($api instanceof TelegramApi) {
+            $api = new EventHandler($api);
+        }
+
+        $api->useContext($callback);
     }
 }

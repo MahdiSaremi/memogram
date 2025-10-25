@@ -34,7 +34,16 @@ class EventHandler
         $this->staticListener = new ListenerDispatcher();
     }
 
-    public function routes(string|Closure $path): void
+    public static function make(TelegramApi|string $api): static
+    {
+        if (is_string($api)) {
+            $api = new TelegramApi($api);
+        }
+
+        return new static($api);
+    }
+
+    public function routes(string|Closure $path)
     {
         $this->staticListener->changeAsCurrent(function () use ($path) {
             if (is_string($path)) {
@@ -43,6 +52,13 @@ class EventHandler
                 $path();
             }
         });
+
+        return $this;
+    }
+
+    public function useContext(Closure $callback): void
+    {
+        $this->handleUsing(null, $callback);
     }
 
     public function handle(Event $event): void
@@ -52,7 +68,7 @@ class EventHandler
         });
     }
 
-    public function handleUsing(Event $event, Closure $callback): void
+    public function handleUsing(?Event $event, Closure $callback): void
     {
         $old = static::$current;
 
