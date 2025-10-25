@@ -38,14 +38,26 @@ class ListenerDispatcher
         $this->listeners[] = $listener;
     }
 
-    public function onAny(Closure $callback): OnAny
+    public function onAny($callback): OnAny
     {
         $this->listen($listener = new OnAny($callback));
 
         return $listener;
     }
 
-    public function onCommand(string $command, ?Closure $callback = null): OnCommand
+    public function onMessage(null|string|false|Closure $message = false, $callback = null): OnMessage
+    {
+        if ($message instanceof Closure) {
+            $callback = $message;
+            $message = false;
+        }
+
+        $this->listen($listener = (new OnMessage)->message($message)->when(isset($callback))->then($callback));
+
+        return $listener;
+    }
+
+    public function onCommand(string $command, $callback = null): OnCommand
     {
         $this->listen($listener = (new OnCommand($command))->when(isset($callback))->then($callback));
 

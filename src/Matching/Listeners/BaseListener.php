@@ -17,7 +17,7 @@ abstract class BaseListener implements Listener, GroupableListener
     use Conditionable;
 
     public ?bool $atFirst = null;
-    protected ?Closure $then = null;
+    protected mixed $then = null;
     /** @var Validator[] */
     protected array $validators = [];
     protected array $middlewares = [];
@@ -45,7 +45,7 @@ abstract class BaseListener implements Listener, GroupableListener
         return $this;
     }
 
-    public function then(Closure $callback)
+    public function then($callback)
     {
         $this->then = $callback;
         return $this;

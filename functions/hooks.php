@@ -139,17 +139,17 @@ function replaceResponse($response): void
     page()->replaceResponse($response);
 }
 
-function onAny(Closure $callback): OnAny
+function onAny($callback): OnAny
 {
     return currentListener()->onAny(...func_get_args());
 }
 
-function onMessage(null|string|false|Closure $message = false, ?Closure $callback = null): OnMessage
+function onMessage(null|string|false|Closure $message = false, $callback = null): OnMessage
 {
     return currentListener()->onMessage(...func_get_args());
 }
 
-function onCommand(string $command, ?Closure $callback = null): OnCommand
+function onCommand(string $command, $callback = null): OnCommand
 {
     return currentListener()->onCommand(...func_get_args());
 }

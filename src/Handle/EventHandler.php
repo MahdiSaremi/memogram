@@ -179,14 +179,18 @@ class EventHandler
 
     /**
      * @param Middleware[] $middlewares
-     * @param Closure $then
+     * @param Closure|string|array $then
      * @param array $args
-     * @return Closure
+     * @return Closure|string|array
      */
-    public function createMiddlewarePipeline(array $middlewares, Closure $then, array $args = []): Closure
+    public function createMiddlewarePipeline(array $middlewares, $then, array $args = []): Closure|string|array
     {
         if (!$middlewares && !$args) {
             return $then;
+        }
+
+        if (is_string($then) || is_array($then)) {
+            $then = static fn(...$args) => open($then, $args);
         }
 
         $i = 0;
