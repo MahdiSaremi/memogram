@@ -138,8 +138,6 @@ class Validator
         if (is_string($rule) && class_exists($rule)) {
             (new $rule(...$args))->validate($this->event, $fail);
         } elseif (is_string($rule)) {
-            [$rule, $args] = ValidationRuleParser::parse($rule);
-
             $this->{'validate' . Str::pascal($rule)}($this->event, $fail, ...$args);
         } elseif ($rule instanceof Closure) {
             $rule($this->event, $fail);

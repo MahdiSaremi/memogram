@@ -102,6 +102,21 @@ function glassKey(string $text, ?string $id = null, ?string $url = null): GlassK
     return new GlassKey($text, $id, $url);
 }
 
+function mounting(): bool
+{
+    return page()->status == \MemoGram\Handle\Page::STATUS_MOUNTING;
+}
+
+function hydrating(): bool
+{
+    return page()->status == \MemoGram\Handle\Page::STATUS_HYDRATING;
+}
+
+function refreshing(): bool
+{
+    return page()->status == \MemoGram\Handle\Page::STATUS_REFRESHING;
+}
+
 function currentListener(): ListenerDispatcher
 {
     return ListenerDispatcher::$current ?? page()->listener;
