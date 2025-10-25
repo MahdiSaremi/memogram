@@ -8,6 +8,7 @@ use MemoGram\Handle\Form\Form;
 use MemoGram\Handle\GarbageState;
 use MemoGram\Handle\State;
 use MemoGram\Matching\ListenerDispatcher;
+use MemoGram\Matching\Listeners\OnCommand;
 use MemoGram\Matching\Listeners\RouteGroup;
 use MemoGram\Matching\Listeners\OnAny;
 use MemoGram\Matching\Listeners\OnMessage;
@@ -16,6 +17,7 @@ use MemoGram\Response\GlassKey;
 use MemoGram\Response\GlassMessageResponse;
 use MemoGram\Response\Key;
 use MemoGram\Response\MessageResponse;
+use MemoGram\Response\TakeControl;
 use function MemoGram\Handle\page;
 
 function useState($defaultValue): State
@@ -87,6 +89,11 @@ function glassMessageResponse($message = null): GlassMessageResponse
     return (new GlassMessageResponse)->when($message !== null)->message($message);
 }
 
+function takeControl(): TakeControl
+{
+    return (new TakeControl);
+}
+
 function deleteResponse(?string $id = null): DeleteResponse
 {
     return (new DeleteResponse)->when($id !== null)->id($id);
@@ -140,6 +147,11 @@ function onAny(Closure $callback): OnAny
 function onMessage(null|string|false|Closure $message = false, ?Closure $callback = null): OnMessage
 {
     return currentListener()->onMessage(...func_get_args());
+}
+
+function onCommand(string $command, ?Closure $callback = null): OnCommand
+{
+    return currentListener()->onCommand(...func_get_args());
 }
 
 function withMiddleware($middleware): RouteGroup

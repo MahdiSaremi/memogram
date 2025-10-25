@@ -89,9 +89,14 @@ abstract class BaseListener implements Listener, GroupableListener
     {
         if ($this->then) {
             eventHandler()->runAction(
-                eventHandler()->createMiddlewarePipeline($this->middlewares, $this->then),
+                eventHandler()->createMiddlewarePipeline($this->middlewares, $this->then, $this->getArguments()),
             );
         }
+    }
+
+    protected function getArguments(): array
+    {
+        return [];
     }
 
     public function getGroup(): ?ListenerDispatcher

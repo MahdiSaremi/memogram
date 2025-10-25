@@ -7,6 +7,7 @@ use MemoGram\Handle\Event;
 use MemoGram\Matching\Listeners\BaseListener;
 use MemoGram\Matching\Listeners\GroupableListener;
 use MemoGram\Matching\Listeners\Listener;
+use MemoGram\Matching\Listeners\OnCommand;
 use MemoGram\Matching\Listeners\RouteGroup;
 use MemoGram\Matching\Listeners\OnAny;
 use MemoGram\Matching\Listeners\OnGlassKey;
@@ -44,14 +45,9 @@ class ListenerDispatcher
         return $listener;
     }
 
-    public function onMessage(null|string|false|Closure $message = false, ?Closure $callback = null): OnMessage
+    public function onCommand(string $command, ?Closure $callback = null): OnCommand
     {
-        if ($message instanceof Closure) {
-            $callback = $message;
-            $message = false;
-        }
-
-        $this->listen($listener = (new OnMessage)->message($message)->when(isset($callback))->then($callback));
+        $this->listen($listener = (new OnCommand($command))->when(isset($callback))->then($callback));
 
         return $listener;
     }
