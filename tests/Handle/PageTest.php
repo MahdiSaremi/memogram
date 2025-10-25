@@ -10,6 +10,7 @@ use MemoGram\Models\PageCellModel;
 use MemoGram\Models\PageModel;
 use MemoGram\Models\PageUseModel;
 use MemoGram\Tests\TestCase;
+use function MemoGram\Hooks\onAny;
 use function MemoGram\Hooks\open;
 use function MemoGram\Hooks\useVersion;
 use function MemoGram\Handle\{page, event};
@@ -229,11 +230,9 @@ class _PageTestClass
         /** @var State<string> $foo */
         $foo = page()->useState(0);
 
-        page()->listenUsing(function (ListenerDispatcher $match) use ($foo) {
-            $match->onAny(function () use ($foo) {
-                $foo->value++;
-                page()->refresh();
-            });
+        onAny(function () use ($foo) {
+            $foo->value++;
+            page()->refresh();
         });
 
         return static::$a = new FakeResponse("State: {$foo->value}");

@@ -108,7 +108,7 @@ class ListenerDispatcher
         foreach ($this->listeners as $listener) {
             $group = $listener instanceof GroupableListener ? $listener->getGroup() : null;
 
-            if (!$group && $atFirst !== @$listener->atFirst ?? false) {
+            if (!$group && $atFirst != @$listener->atFirst ?? false) {
                 continue;
             }
 
