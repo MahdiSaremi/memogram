@@ -65,4 +65,15 @@ class {{ $class }} implements Event
     {
         return $this->message?->reply_to_message?->message_id;
     }
+
+    public function getChatType(): null|string
+    {
+        return $this->message?->chat?->type
+            ?? $this->edited_message?->chat?->type
+            ?? $this->channel_post?->chat?->type
+            ?? $this->edited_channel_post?->chat?->type
+            ?? $this->callback_query?->message?->chat?->type
+            ?? $this->inline_query?->chat_type
+            ?? $this->message_reaction?->chat?->type;
+    }
 }
