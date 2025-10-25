@@ -8,6 +8,7 @@ use MemoGram\Handle\Form\Form;
 use MemoGram\Handle\GarbageState;
 use MemoGram\Handle\State;
 use MemoGram\Matching\ListenerDispatcher;
+use MemoGram\Matching\Listeners\RouteGroup;
 use MemoGram\Matching\Listeners\OnAny;
 use MemoGram\Matching\Listeners\OnMessage;
 use MemoGram\Response\DeleteResponse;
@@ -106,9 +107,9 @@ function currentListener(): ListenerDispatcher
     return ListenerDispatcher::$current ?? page()->listener;
 }
 
-function stopPage(): never
+function stopPage(): StopPage
 {
-    throw new StopPage();
+    return new StopPage();
 }
 
 function replaceResponse($response): void
@@ -124,4 +125,14 @@ function onAny(Closure $callback): OnAny
 function onMessage(null|string|false|Closure $message = false, ?Closure $callback = null): OnMessage
 {
     return currentListener()->onMessage(...func_get_args());
+}
+
+function withMiddleware($middleware): RouteGroup
+{
+    return currentListener()->withMiddleware($middleware);
+}
+
+function withPass($rule): RouteGroup
+{
+    return currentListener()->withPass($rule);
 }

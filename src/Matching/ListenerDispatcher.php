@@ -4,7 +4,10 @@ namespace MemoGram\Matching;
 
 use Closure;
 use MemoGram\Handle\Event;
+use MemoGram\Matching\Listeners\BaseListener;
+use MemoGram\Matching\Listeners\GroupableListener;
 use MemoGram\Matching\Listeners\Listener;
+use MemoGram\Matching\Listeners\RouteGroup;
 use MemoGram\Matching\Listeners\OnAny;
 use MemoGram\Matching\Listeners\OnGlassKey;
 use MemoGram\Matching\Listeners\OnKey;
@@ -22,9 +25,23 @@ class ListenerDispatcher
      */
     public array $listeners = [];
 
+    public function __construct(
+        protected ?GroupableListener $parent = null,
+    )
+    {
+    }
+
+    public function listen(Listener $listener): void
+    {
+        $this->parent?->prepareSubListener($listener);
+        $this->listeners[] = $listener;
+    }
+
     public function onAny(Closure $callback): OnAny
     {
-        return $this->listeners[] = new OnAny($callback);
+        $this->listen($listener = new OnAny($callback));
+
+        return $listener;
     }
 
     public function onMessage(null|string|false|Closure $message = false, ?Closure $callback = null): OnMessage
@@ -34,17 +51,37 @@ class ListenerDispatcher
             $message = false;
         }
 
-        return $this->listeners[] = (new OnMessage)->message($message)->when(isset($callback))->then($callback);
+        $this->listen($listener = (new OnMessage)->message($message)->when(isset($callback))->then($callback));
+
+        return $listener;
     }
 
     public function onKey(Key $key): OnKey
     {
-        return $this->listeners[] = new OnKey($key);
+        $this->listen($listener = new OnKey($key));
+
+        return $listener;
     }
 
     public function onGlassKey(GlassKey $key): OnGlassKey
     {
-        return $this->listeners[] = new OnGlassKey($key);
+        $this->listen($listener = new OnGlassKey($key));
+
+        return $listener;
+    }
+
+    public function withMiddleware($middleware): RouteGroup
+    {
+        $this->listen($listener = (new RouteGroup)->middleware($middleware));
+
+        return $listener;
+    }
+
+    public function withPass($rule): RouteGroup
+    {
+        $this->listen($listener = (new RouteGroup)->pass($rule));
+
+        return $listener;
     }
 
     public function changeAsCurrent(\Closure $callback): void
@@ -69,23 +106,31 @@ class ListenerDispatcher
         $helper = new MatchHelper();
 
         foreach ($this->listeners as $listener) {
-            if ($atFirst !== @$listener->atFirst ?? false) {
+            $group = $listener instanceof GroupableListener ? $listener->getGroup() : null;
+
+            if (!$group && $atFirst !== @$listener->atFirst ?? false) {
                 continue;
             }
 
             if ($listener->runCheck($event, $helper)) {
-                $old = static::$continue;
-
-                try {
-                    static::$continue = false;
-
-                    $listener->runAction($event);
-
-                    if (!static::$continue) {
+                if ($group) {
+                    if ($group->pushEventAt($event, $atFirst)) {
                         return true;
                     }
-                } finally {
-                    static::$continue = $old;
+                } else {
+                    $old = static::$continue;
+
+                    try {
+                        static::$continue = false;
+
+                        $listener->runAction($event);
+
+                        if (!static::$continue) {
+                            return true;
+                        }
+                    } finally {
+                        static::$continue = $old;
+                    }
                 }
             }
         }

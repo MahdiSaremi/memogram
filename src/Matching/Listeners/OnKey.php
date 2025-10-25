@@ -28,7 +28,9 @@ class OnKey extends BaseListener
     public function runAction(Event $event): void
     {
         if ($this->key->then) {
-            eventHandler()->runAction($this->key->then);
+            eventHandler()->runAction(
+                eventHandler()->createMiddlewarePipeline($this->middlewares, $this->key->then),
+            );
         }
 
         parent::runAction($event);

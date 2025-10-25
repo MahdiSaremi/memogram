@@ -13,7 +13,8 @@ use MemoGram\Handle\Event;
 class Validator
 {
     use Concerns\ValidateUpdates,
-        Concerns\ValidateMessages;
+        Concerns\ValidateMessages,
+        Concerns\ValidateChats;
 
     protected array $rules = [[]];
     protected array $specificMessages = [[]];

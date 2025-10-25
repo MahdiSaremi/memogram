@@ -3,8 +3,10 @@
 namespace MemoGram\Handle;
 
 use Closure;
+use Generator;
 use Illuminate\Database\Eloquent\Collection;
 use MemoGram\Api\TelegramApi;
+use MemoGram\Exceptions\StopPage;
 use MemoGram\Handle\Middleware\Middleware;
 use MemoGram\Matching\ListenerDispatcher;
 use MemoGram\Models\PageCellModel;
@@ -198,36 +200,63 @@ class EventHandler
 
     public function handleResponse(mixed $response): void
     {
-        $this->streamResponse($response, function (AsResponse $response, string $key) {
+        foreach ($this->eachResponse($response) as $key => $response) {
             $response->runResponse($this->pageStack ? end($this->pageStack) : null, $key);
-        });
+        };
+    }
+
+    /**
+     * @param mixed $response
+     * @return Generator<string, AsResponse>
+     */
+    public function eachResponse(mixed $response): Generator
+    {
+        foreach ($this->eachSubResponse($response) as $key => $response) {
+            if ($response instanceof StopPage) {
+                return;
+            }
+
+            yield $key => $response;
+        }
     }
 
     public function streamResponse(mixed $response, Closure $callback): void
     {
-        $this->streamSubResponse($response, $callback);
+        foreach ($this->eachResponse($response) as $key => $response) {
+            $callback($response, $key);
+        }
     }
 
-    protected function streamSubResponse(mixed $response, Closure $callback, string $id = null): void
+    /**
+     * @param mixed $response
+     * @param string|null $id
+     * @return Generator<string, AsResponse>
+     */
+    protected function eachSubResponse(mixed $response, string $id = null): Generator
     {
         if (is_null($response)) {
             return;
         }
 
         if (is_string($response)) {
-            $callback((new MessageResponse())->message($response), $id ?? '0');
+            yield $id ?? '0' => (new MessageResponse())->message($response);
             return;
         }
 
         if (is_array($response) || $response instanceof \Iterator) {
             foreach ($response as $_id => $resp) {
-                $this->streamSubResponse($resp, $callback, is_int($_id) ? (($id !== null ? $id . '.' : '') . $_id) : $_id);
+                yield from $this->eachSubResponse($resp, is_int($_id) ? (($id !== null ? $id . '.' : '') . $_id) : $_id);
             }
             return;
         }
 
         if ($response instanceof AsResponse) {
-            $callback($response, $response->id ?? $id ?? '0');
+            yield $response->id ?? $id ?? '0' => $response;
+            return;
+        }
+
+        if ($response instanceof StopPage) {
+            yield $response;
             return;
         }
 

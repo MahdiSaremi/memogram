@@ -175,6 +175,13 @@ class Page
         return false;
     }
 
+    protected function streamResponse(mixed $response, Closure $callback): void
+    {
+        eventHandler()->streamResponse($response, function (AsResponse $response, string $key) use ($callback) {
+            $callback($response, $key);
+        });
+    }
+
     public function listenUsing(Closure $callback): void
     {
         $callback($this->listener);

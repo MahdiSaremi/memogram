@@ -1,5 +1,6 @@
 <?php
 
+use MemoGram\Api\Types\Chat;
 use MemoGram\Api\Types\Message;
 
 return [
@@ -46,5 +47,12 @@ return [
         Message::TYPE_MEDIA => 'media',
         Message::TYPE_TEXT => 'text',
         Message::TYPE_UNKNOWN => 'unknown',
+    ],
+    'chat_type' => "Chat type should be :type.",
+    'chat_types' => [
+        Chat::TYPE_PRIVATE => 'private',
+        Chat::TYPE_GROUP => 'group',
+        Chat::TYPE_SUPERGROUP => 'super group',
+        Chat::TYPE_CHANNEL => 'channel',
     ],
 ];
