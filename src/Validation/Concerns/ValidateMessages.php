@@ -4,6 +4,7 @@ namespace MemoGram\Validation\Concerns;
 
 use MemoGram\Api\Types\Message;
 use MemoGram\Handle\Event;
+use MemoGram\Support\MessageContent;
 
 trait ValidateMessages
 {
@@ -24,19 +25,19 @@ trait ValidateMessages
         return null;
     }
 
-    protected function validateText(Event $event, $fail): ?string
+    protected function validateText(Event $event, $fail): bool
     {
         if (!$message = $this->validateMessage($event, $fail)) {
-            return null;
+            return false;
         }
 
         if ($message->getType() == Message::TYPE_TEXT) {
             $this->validatedText = $message->text ?? "";
-            return $message->text ?? "";
+            return true;
         }
 
         $fail('memogram::validation.text')->translate();
-        return null;
+        return false;
     }
 
     protected function validateMessageType(Event $event, $fail, string ...$types): void
@@ -60,88 +61,105 @@ trait ValidateMessages
         }
     }
 
-    protected function validateParagraph(Event $event, $fail): ?string
+    protected function validateContent(Event $event, $fail): void
     {
-        if (null === $text = $this->validateText($event, $fail)) {
-            return null;
+        if (!$message = $this->validateMessage($event, $fail)) {
+            return;
         }
 
-        if (str_contains($text, "\n")) {
+        if (!$message->isContent()) {
+            $fail('memogram::validation.is_content')->translate();
+        }
+
+        $this->validatedText = $message->caption ?? $message->text;
+    }
+
+    protected function validateParagraph(Event $event, $fail): bool
+    {
+        if (!isset($this->validatedText) && !$this->validateText($event, $fail)) {
+            return false;
+        }
+
+        if (str_contains($this->validatedText, "\n")) {
             $fail('memogram::validation.paragraph')->translate();
-            return null;
+            return false;
         }
 
-        return $text;
+        return true;
     }
 
-    protected function validateShortText(Event $event, $fail, int $max = 255): ?string
+    protected function validateShortText(Event $event, $fail, int $max = 255): bool
     {
-        if (null === $text = $this->validateParagraph($event, $fail)) {
-            return null;
+        if (!isset($this->validatedText) && !$this->validateText($event, $fail)) {
+            return false;
         }
 
-        if (strlen($text) > $max) {
+        if (strlen($this->validatedText) > $max) {
             $fail('memogram::validation.short_text_max_reached')->translate(['max' => $max]);
-            return null;
+            return false;
         }
 
-        return $text;
+        return true;
     }
 
-    protected function validateUnsignedNumber(Event $event, $fail): void
+    protected function validateUnsignedNumber(Event $event, $fail): bool
     {
-        if (null === $text = $this->validateText($event, $fail)) {
-            return;
+        if (!isset($this->validatedText) && !$this->validateText($event, $fail)) {
+            return false;
         }
 
-        if (!is_numeric($text) || +$text < 0) {
+        if (!is_numeric($this->validatedText) || +$this->validatedText < 0) {
             $fail('memogram::validation.unsigned_number')->translate();
-            return;
+            return false;
         }
 
-        $this->validatedNumber = +$text;
+        $this->validatedNumber = +$this->validatedText;
+        return true;
     }
 
-    protected function validateNumber(Event $event, $fail): void
+    protected function validateNumber(Event $event, $fail): bool
     {
-        if (null === $text = $this->validateText($event, $fail)) {
-            return;
+        if (!isset($this->validatedText) && !$this->validateText($event, $fail)) {
+            return false;
         }
 
-        if (!is_numeric($text)) {
+        if (!is_numeric($this->validatedText)) {
             $fail('memogram::validation.number')->translate();
-            return;
+            return false;
         }
 
-        $this->validatedNumber = +$text;
+        $this->validatedNumber = +$this->validatedText;
+        return true;
     }
 
-    protected function validateUnsignedInteger(Event $event, $fail): void
+    protected function validateUnsignedInteger(Event $event, $fail): bool
     {
-        if (null === $text = $this->validateText($event, $fail)) {
-            return;
+        if (!isset($this->validatedText) && !$this->validateText($event, $fail)) {
+            return false;
         }
 
-        if (!is_numeric($text) || str_contains($text, 'e') || str_contains($text, 'E') || str_contains($text, '.') || +$text < 0) {
+        if (!is_numeric($this->validatedText) || str_contains($this->validatedText, 'e') || str_contains($this->validatedText, 'E') || str_contains($this->validatedText, '.') || +$this->validatedText < 0) {
             $fail('memogram::validation.unsigned_int')->translate();
-            return;
+            return false;
         }
 
-        $this->validatedNumber = (int)+$text;
+        $this->validatedNumber = (int)+$this->validatedText;
+        return true;
     }
 
-    protected function validateInteger(Event $event, $fail): void
+    protected function validateInteger(Event $event, $fail): bool
     {
-        if (null === $text = $this->validateText($event, $fail)) {
-            return;
+        if (!isset($this->validatedText) && !$this->validateText($event, $fail)) {
+            return false;
         }
 
-        if (!is_numeric($text) || str_contains($text, 'e') || str_contains($text, 'E') || str_contains($text, '.')) {
+        if (!is_numeric($this->validatedText) || str_contains($this->validatedText, 'e') || str_contains($this->validatedText, 'E') || str_contains($this->validatedText, '.')) {
             $fail('memogram::validation.int')->translate();
-            return;
+            return false;
         }
 
-        $this->validatedNumber = (int)+$text;
+        $this->validatedNumber = (int)+$this->validatedText;
+        return true;
     }
 
     protected function validateMin(Event $event, $fail, int $min): void

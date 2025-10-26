@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MemoGram\Api\Types;
 
 use MemoGram\Api\Concerns;
+use MemoGram\Support\MessageContent;
 use MemoGram\Api\Types\DirectMessagesTopic;
 use MemoGram\Api\Types\User;
 use MemoGram\Api\Types\Chat;
@@ -408,8 +409,20 @@ class Message
     public const TYPE_CHANNEL_CHAT_CREATED = 'channel_chat_created';
     public const TYPE_USERS_SHARED = 'users_shared';
     public const TYPE_CHAT_SHARED = 'chat_shared';
-    public const TYPE_MEDIA = 'media';
+    public const TYPE_INVOICE = 'invoice';
     public const TYPE_TEXT = 'text';
+    public const TYPE_NEW_CHAT_PHOTO = 'new_chat_photo';
+    public const TYPE_MIGRATE_TO_CHAT_ID = 'migrate_to_chat_id';
+    public const TYPE_MIGRATE_FROM_CHAT_ID = 'migrate_from_chat_id';
+    public const TYPE_PINNED_MESSAGE = 'pinned_message';
+    public const TYPE_FORUM_TOPIC_CREATED = 'forum_topic_created';
+    public const TYPE_FORUM_TOPIC_REOPENED = 'forum_topic_reopened';
+    public const TYPE_FORUM_TOPIC_CLOSED = 'forum_topic_closed';
+    public const TYPE_FORUM_TOPIC_EDITED = 'forum_topic_edited';
+    public const TYPE_VIDEO_CHAT_STARTED = 'video_chat_started';
+    public const TYPE_VIDEO_CHAT_SCHEDULED = 'video_chat_scheduled';
+    public const TYPE_VIDEO_CHAT_ENDED = 'video_chat_ended';
+    public const TYPE_VIDEO_CHAT_PARTICIPANTS_INVITED = 'video_chat_participants_invited';
     public const TYPE_UNKNOWN = 'unknown';
 
     public function getType(): string
@@ -437,14 +450,36 @@ class Message
             null !== $this->group_chat_created => self::TYPE_GROUP_CHAT_CREATED,
             null !== $this->supergroup_chat_created => self::TYPE_SUPERGROUP_CHAT_CREATED,
             null !== $this->channel_chat_created => self::TYPE_CHANNEL_CHAT_CREATED,
-//            null !== $this->invoice => 'invoice',
+            null !== $this->invoice => self::TYPE_INVOICE,
             null !== $this->users_shared => self::TYPE_USERS_SHARED,
             null !== $this->chat_shared => self::TYPE_CHAT_SHARED,
 
-            null !== $this->caption => self::TYPE_MEDIA,
+            null !== $this->new_chat_photo => self::TYPE_NEW_CHAT_PHOTO,
+            null !== $this->migrate_to_chat_id => self::TYPE_MIGRATE_TO_CHAT_ID,
+            null !== $this->migrate_from_chat_id => self::TYPE_MIGRATE_FROM_CHAT_ID,
+            null !== $this->pinned_message => self::TYPE_PINNED_MESSAGE,
+            null !== $this->forum_topic_created => self::TYPE_FORUM_TOPIC_CREATED,
+            null !== $this->forum_topic_reopened => self::TYPE_FORUM_TOPIC_REOPENED,
+            null !== $this->forum_topic_closed => self::TYPE_FORUM_TOPIC_CLOSED,
+            null !== $this->forum_topic_edited => self::TYPE_FORUM_TOPIC_EDITED,
+            null !== $this->video_chat_started => self::TYPE_VIDEO_CHAT_STARTED,
+            null !== $this->video_chat_scheduled => self::TYPE_VIDEO_CHAT_SCHEDULED,
+            null !== $this->video_chat_ended => self::TYPE_VIDEO_CHAT_ENDED,
+            null !== $this->video_chat_participants_invited => self::TYPE_VIDEO_CHAT_PARTICIPANTS_INVITED,
+
             null !== $this->text => self::TYPE_TEXT,
 
             default => self::TYPE_UNKNOWN,
         };
+    }
+
+    public function isContent(): bool
+    {
+        return MessageContent::isAble($this->getType());
+    }
+
+    public function toContent(bool $includeEntities = true): MessageContent
+    {
+        return MessageContent::fromMessage($this, $includeEntities);
     }
 }

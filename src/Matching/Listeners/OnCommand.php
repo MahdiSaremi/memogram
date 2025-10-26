@@ -41,7 +41,7 @@ class OnCommand extends BaseListener
     {
         if (
             $event instanceof Update &&
-            preg_match('/^' . preg_quote((str_starts_with($this->command, '/') ? '' : '/') . $this->command) . '($|[\s\r\n]+)/i', $event->message->text, $matches)
+            preg_match('/^' . preg_quote((str_starts_with($this->command, '/') ? '' : '/') . $this->command, '/') . '($|[\s\r\n]+)/i', $event->message->text, $matches)
         ) {
             $this->lastContent = substr($event->message->text, strlen($matches[0]));
             return true;

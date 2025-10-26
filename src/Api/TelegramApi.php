@@ -5,43 +5,48 @@ declare(strict_types=1);
 namespace MemoGram\Api;
 
 use MemoGram\Api\Types\AcceptedGiftTypes;
+use MemoGram\Api\Types\BotCommand;
 use MemoGram\Api\Types\BotCommandScope;
+use MemoGram\Api\Types\BotDescription;
+use MemoGram\Api\Types\BotName;
+use MemoGram\Api\Types\BotShortDescription;
+use MemoGram\Api\Types\BusinessConnection;
 use MemoGram\Api\Types\ChatAdministratorRights;
+use MemoGram\Api\Types\ChatFullInfo;
+use MemoGram\Api\Types\ChatInviteLink;
+use MemoGram\Api\Types\ChatMember;
 use MemoGram\Api\Types\ChatPermissions;
+use MemoGram\Api\Types\File;
 use MemoGram\Api\Types\ForceReply;
+use MemoGram\Api\Types\ForumTopic;
+use MemoGram\Api\Types\GameHighScore;
 use MemoGram\Api\Types\InlineKeyboardMarkup;
 use MemoGram\Api\Types\InlineQueryResult;
 use MemoGram\Api\Types\InlineQueryResultsButton;
 use MemoGram\Api\Types\InputChecklist;
 use MemoGram\Api\Types\InputMedia;
+use MemoGram\Api\Types\InputMediaAnimation;
+use MemoGram\Api\Types\InputMediaAudio;
+use MemoGram\Api\Types\InputMediaDocument;
+use MemoGram\Api\Types\InputMediaPhoto;
+use MemoGram\Api\Types\InputMediaVideo;
 use MemoGram\Api\Types\InputProfilePhoto;
 use MemoGram\Api\Types\InputSticker;
 use MemoGram\Api\Types\InputStoryContent;
 use MemoGram\Api\Types\LinkPreviewOptions;
 use MemoGram\Api\Types\MaskPosition;
 use MemoGram\Api\Types\MenuButton;
+use MemoGram\Api\Types\Message;
+use MemoGram\Api\Types\PreparedInlineMessage;
 use MemoGram\Api\Types\ReplyKeyboardMarkup;
 use MemoGram\Api\Types\ReplyKeyboardRemove;
 use MemoGram\Api\Types\ReplyParameters;
+use MemoGram\Api\Types\Sticker;
+use MemoGram\Api\Types\Story;
 use MemoGram\Api\Types\SuggestedPostParameters;
 use MemoGram\Api\Types\Update;
-use MemoGram\Api\Types\Message;
-use MemoGram\Api\Types\UserProfilePhotos;
-use MemoGram\Api\Types\ChatInviteLink;
-use MemoGram\Api\Types\ChatFullInfo;
-use MemoGram\Api\Types\ChatMember;
-use MemoGram\Api\Types\ForumTopic;
 use MemoGram\Api\Types\UserChatBoosts;
-use MemoGram\Api\Types\BusinessConnection;
-use MemoGram\Api\Types\BotCommand;
-use MemoGram\Api\Types\BotName;
-use MemoGram\Api\Types\BotDescription;
-use MemoGram\Api\Types\BotShortDescription;
-use MemoGram\Api\Types\Story;
-use MemoGram\Api\Types\Sticker;
-use MemoGram\Api\Types\File;
-use MemoGram\Api\Types\PreparedInlineMessage;
-use MemoGram\Api\Types\GameHighScore;
+use MemoGram\Api\Types\UserProfilePhotos;
 
 
 class TelegramApi
@@ -50,7 +55,9 @@ class TelegramApi
 
     public function __construct(
         private readonly string $token,
-    ) {}
+    )
+    {
+    }
 
     /**
      * A JSON-serialized list of the update types you want your bot to receive. For example, specify ["message", "edited_channel_post", "callback_query"] to only receive updates of these types. See Update for a complete list of available update types. Specify an empty list to receive all update types except chat_member, message_reaction, and message_reaction_count (default). If not specified, the previous setting will be used.Please note that this parameter doesn't affect updates created before the call to getUpdates, so unwanted updates may be received for a short period of time.
@@ -67,7 +74,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('getUpdates', $vars), ['array', Update::class]);
     }
-    
+
     /**
      * A secret token to be sent in a header “X-Telegram-Bot-Api-Secret-Token” in every webhook request, 1-256 characters. Only characters A-Z, a-z, 0-9, _ and - are allowed. The header is useful to ensure that the request comes from a webhook set by you.
      * @param string $url HTTPS URL to send updates to. Use an empty string to remove webhook integration
@@ -86,7 +93,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('setWebhook', $vars), ['true']);
     }
-    
+
     /**
      * Pass True to drop all pending updates
      * @param bool|null $drop_pending_updates Pass True to drop all pending updates
@@ -99,7 +106,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('deleteWebhook', $vars), ['true']);
     }
-    
+
     /**
      * Optional. A list of update types the bot is subscribed to. Defaults to all update types except chat_member
      * @param string $url Webhook URL, may be empty if webhook is not set up
@@ -120,7 +127,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('getWebhookInfo', $vars), ['mixed']);
     }
-    
+
     /**
      * Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove a reply keyboard or to force a reply from the user
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -147,7 +154,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('getMe', $vars), [Message::class]);
     }
-    
+
     /**
      * Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove a reply keyboard or to force a reply from the user
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -174,7 +181,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('logOut', $vars), [Message::class]);
     }
-    
+
     /**
      * Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove a reply keyboard or to force a reply from the user
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -201,7 +208,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('close', $vars), [Message::class]);
     }
-    
+
     /**
      * Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove a reply keyboard or to force a reply from the user
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -228,7 +235,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('sendMessage', $vars), [Message::class]);
     }
-    
+
     /**
      * Message identifier in the chat specified in from_chat_id
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -249,7 +256,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('forwardMessage', $vars), [Message::class]);
     }
-    
+
     /**
      * Protects the contents of the forwarded messages from forwarding and saving
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -268,7 +275,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('forwardMessages', $vars), ['messages']);
     }
-    
+
     /**
      * Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove a reply keyboard or to force a reply from the user
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -296,7 +303,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('copyMessage', $vars), ['int']);
     }
-    
+
     /**
      * Pass True to copy the messages without their captions
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -316,7 +323,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('copyMessages', $vars), ['messages']);
     }
-    
+
     /**
      * Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove a reply keyboard or to force a reply from the user
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -345,7 +352,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('sendPhoto', $vars), [Message::class]);
     }
-    
+
     /**
      * Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove a reply keyboard or to force a reply from the user
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -376,7 +383,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('sendAudio', $vars), [Message::class]);
     }
-    
+
     /**
      * Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove a reply keyboard or to force a reply from the user
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -405,7 +412,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('sendDocument', $vars), [Message::class]);
     }
-    
+
     /**
      * Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove a reply keyboard or to force a reply from the user
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -441,7 +448,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('sendVideo', $vars), [Message::class]);
     }
-    
+
     /**
      * Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove a reply keyboard or to force a reply from the user
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -474,7 +481,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('sendAnimation', $vars), [Message::class]);
     }
-    
+
     /**
      * Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove a reply keyboard or to force a reply from the user
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -502,7 +509,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('sendVoice', $vars), [Message::class]);
     }
-    
+
     /**
      * Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove a reply keyboard or to force a reply from the user
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -529,7 +536,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('sendVideoNote', $vars), [Message::class]);
     }
-    
+
     /**
      * Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove a reply keyboard or to force a reply from the user
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername). If the chat is a channel, all Telegram Star proceeds from this media will be credited to the chat's balance. Otherwise, they will be credited to the bot's balance.
@@ -558,11 +565,11 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('sendPaidMedia', $vars), [Message::class]);
     }
-    
+
     /**
      * Description of the message to reply to
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
-     * @param array<\MemoGram\Api\Types\InputMediaAudio, InputMediaDocument, InputMediaPhoto and InputMediaVideo> $media A JSON-serialized array describing messages to be sent, must include 2-10 items
+     * @param array<InputMediaAudio|InputMediaDocument|InputMediaPhoto|InputMediaVideo|array> $media A JSON-serialized array describing messages to be sent, must include 2-10 items
      * @param string|null $business_connection_id Unique identifier of the business connection on behalf of which the message will be sent
      * @param int|null $message_thread_id Unique identifier for the target message thread (topic) of the forum; for forum supergroups only
      * @param int|null $direct_messages_topic_id Identifier of the direct messages topic to which the messages will be sent; required if the messages are sent to a direct messages chat
@@ -580,7 +587,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('sendMediaGroup', $vars), ['mixed']);
     }
-    
+
     /**
      * Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove a reply keyboard or to force a reply from the user
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -609,7 +616,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('sendLocation', $vars), [Message::class]);
     }
-    
+
     /**
      * Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove a reply keyboard or to force a reply from the user
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -640,7 +647,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('sendVenue', $vars), [Message::class]);
     }
-    
+
     /**
      * Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove a reply keyboard or to force a reply from the user
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -667,7 +674,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('sendContact', $vars), [Message::class]);
     }
-    
+
     /**
      * Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove a reply keyboard or to force a reply from the user
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername). Polls can't be sent to channel direct messages chats.
@@ -702,7 +709,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('sendPoll', $vars), [Message::class]);
     }
-    
+
     /**
      * A JSON-serialized object for an inline keyboard
      * @param string $business_connection_id Unique identifier of the business connection on behalf of which the message will be sent
@@ -722,7 +729,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('sendChecklist', $vars), [Message::class]);
     }
-    
+
     /**
      * Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove a reply keyboard or to force a reply from the user
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -746,7 +753,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('sendDice', $vars), [Message::class]);
     }
-    
+
     /**
      * Type of action to broadcast. Choose one, depending on what the user is about to receive: typing for text messages, upload_photo for photos, record_video or upload_video for videos, record_voice or upload_voice for voice notes, upload_document for general files, choose_sticker for stickers, find_location for location data, record_video_note or upload_video_note for video notes.
      * @param int|string $chat_id Unique identifier for the target chat or username of the target supergroup (in the format @supergroupusername). Channel chats and channel direct messages chats aren't supported.
@@ -762,7 +769,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('sendChatAction', $vars), ['true']);
     }
-    
+
     /**
      * Pass True to set the reaction with a big animation
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -778,7 +785,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('setMessageReaction', $vars), ['true']);
     }
-    
+
     /**
      * Limits the number of photos to be retrieved. Values between 1-100 are accepted. Defaults to 100.
      * @param int $user_id Unique identifier of the target user
@@ -793,7 +800,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('getUserProfilePhotos', $vars), [UserProfilePhotos::class]);
     }
-    
+
     /**
      * Expiration date of the emoji status, if any
      * @param int $user_id Unique identifier of the target user
@@ -808,7 +815,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('setUserEmojiStatus', $vars), ['true']);
     }
-    
+
     /**
      * File identifier to get information about
      * @param string $file_id File identifier to get information about
@@ -821,7 +828,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('getFile', $vars), ['mixed']);
     }
-    
+
     /**
      * Pass True to delete all messages from the chat for the user that is being removed. If False, the user will be able to see messages in the group that were sent before the user was removed. Always True for supergroups and channels.
      * @param int|string $chat_id Unique identifier for the target group or username of the target supergroup or channel (in the format @channelusername)
@@ -837,7 +844,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('banChatMember', $vars), ['true']);
     }
-    
+
     /**
      * Do nothing if the user is not banned
      * @param int|string $chat_id Unique identifier for the target group or username of the target supergroup or channel (in the format @channelusername)
@@ -852,7 +859,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('unbanChatMember', $vars), ['true']);
     }
-    
+
     /**
      * Date when restrictions will be lifted for the user; Unix time. If user is restricted for more than 366 days or less than 30 seconds from the current time, they are considered to be restricted forever
      * @param int|string $chat_id Unique identifier for the target chat or username of the target supergroup (in the format @supergroupusername)
@@ -869,7 +876,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('restrictChatMember', $vars), ['true']);
     }
-    
+
     /**
      * Pass True if the administrator can manage direct messages within the channel and decline suggested posts; for channels only
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -899,7 +906,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('promoteChatMember', $vars), ['true']);
     }
-    
+
     /**
      * New custom title for the administrator; 0-16 characters, emoji are not allowed
      * @param int|string $chat_id Unique identifier for the target chat or username of the target supergroup (in the format @supergroupusername)
@@ -914,7 +921,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('setChatAdministratorCustomTitle', $vars), ['true']);
     }
-    
+
     /**
      * Unique identifier of the target sender chat
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -928,7 +935,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('banChatSenderChat', $vars), ['true']);
     }
-    
+
     /**
      * Unique identifier of the target sender chat
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -942,7 +949,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('unbanChatSenderChat', $vars), ['true']);
     }
-    
+
     /**
      * Pass True if chat permissions are set independently. Otherwise, the can_send_other_messages and can_add_web_page_previews permissions will imply the can_send_messages, can_send_audios, can_send_documents, can_send_photos, can_send_videos, can_send_video_notes, and can_send_voice_notes permissions; the can_send_polls permission will imply the can_send_messages permission.
      * @param int|string $chat_id Unique identifier for the target chat or username of the target supergroup (in the format @supergroupusername)
@@ -957,7 +964,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('setChatPermissions', $vars), ['true']);
     }
-    
+
     /**
      * Unique identifier for the target chat or username of the target channel (in the format @channelusername)
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -970,7 +977,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('exportChatInviteLink', $vars), ['string']);
     }
-    
+
     /**
      * True, if users joining the chat via the link need to be approved by chat administrators. If True, member_limit can't be specified
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -987,7 +994,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('createChatInviteLink', $vars), [ChatInviteLink::class]);
     }
-    
+
     /**
      * True, if users joining the chat via the link need to be approved by chat administrators. If True, member_limit can't be specified
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -1005,7 +1012,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('editChatInviteLink', $vars), [ChatInviteLink::class]);
     }
-    
+
     /**
      * The amount of Telegram Stars a user must pay initially and after each subsequent subscription period to be a member of the chat; 1-10000
      * @param int|string $chat_id Unique identifier for the target channel chat or username of the target channel (in the format @channelusername)
@@ -1021,7 +1028,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('createChatSubscriptionInviteLink', $vars), [ChatInviteLink::class]);
     }
-    
+
     /**
      * Invite link name; 0-32 characters
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -1036,7 +1043,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('editChatSubscriptionInviteLink', $vars), [ChatInviteLink::class]);
     }
-    
+
     /**
      * The invite link to revoke
      * @param int|string $chat_id Unique identifier of the target chat or username of the target channel (in the format @channelusername)
@@ -1050,7 +1057,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('revokeChatInviteLink', $vars), [ChatInviteLink::class]);
     }
-    
+
     /**
      * Unique identifier of the target user
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -1064,7 +1071,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('approveChatJoinRequest', $vars), ['true']);
     }
-    
+
     /**
      * Unique identifier of the target user
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -1078,7 +1085,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('declineChatJoinRequest', $vars), ['true']);
     }
-    
+
     /**
      * New chat photo, uploaded using multipart/form-data
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -1092,7 +1099,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('setChatPhoto', $vars), ['true']);
     }
-    
+
     /**
      * Unique identifier for the target chat or username of the target channel (in the format @channelusername)
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -1105,7 +1112,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('deleteChatPhoto', $vars), ['true']);
     }
-    
+
     /**
      * New chat title, 1-128 characters
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -1119,7 +1126,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('setChatTitle', $vars), ['true']);
     }
-    
+
     /**
      * New chat description, 0-255 characters
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -1133,7 +1140,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('setChatDescription', $vars), ['true']);
     }
-    
+
     /**
      * Pass True if it is not necessary to send a notification to all chat members about the new pinned message. Notifications are always disabled in channels and private chats.
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -1149,7 +1156,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('pinChatMessage', $vars), ['true']);
     }
-    
+
     /**
      * Identifier of the message to unpin. Required if business_connection_id is specified. If not specified, the most recent pinned message (by sending date) will be unpinned.
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -1164,7 +1171,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('unpinChatMessage', $vars), ['true']);
     }
-    
+
     /**
      * Unique identifier for the target chat or username of the target channel (in the format @channelusername)
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -1177,7 +1184,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('unpinAllChatMessages', $vars), ['true']);
     }
-    
+
     /**
      * Unique identifier for the target chat or username of the target supergroup or channel (in the format @channelusername). Channel direct messages chats aren't supported; leave the corresponding channel instead.
      * @param int|string $chat_id Unique identifier for the target chat or username of the target supergroup or channel (in the format @channelusername). Channel direct messages chats aren't supported; leave the corresponding channel instead.
@@ -1190,7 +1197,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('leaveChat', $vars), ['true']);
     }
-    
+
     /**
      * Unique identifier for the target chat or username of the target supergroup or channel (in the format @channelusername)
      * @param int|string $chat_id Unique identifier for the target chat or username of the target supergroup or channel (in the format @channelusername)
@@ -1203,7 +1210,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('getChat', $vars), [ChatFullInfo::class]);
     }
-    
+
     /**
      * Unique identifier for the target chat or username of the target supergroup or channel (in the format @channelusername)
      * @param int|string $chat_id Unique identifier for the target chat or username of the target supergroup or channel (in the format @channelusername)
@@ -1216,7 +1223,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('getChatAdministrators', $vars), ['array', ChatMember::class]);
     }
-    
+
     /**
      * Unique identifier for the target chat or username of the target supergroup or channel (in the format @channelusername)
      * @param int|string $chat_id Unique identifier for the target chat or username of the target supergroup or channel (in the format @channelusername)
@@ -1229,7 +1236,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('getChatMemberCount', $vars), ['int']);
     }
-    
+
     /**
      * Unique identifier of the target user
      * @param int|string $chat_id Unique identifier for the target chat or username of the target supergroup or channel (in the format @channelusername)
@@ -1243,7 +1250,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('getChatMember', $vars), [ChatMember::class]);
     }
-    
+
     /**
      * Name of the sticker set to be set as the group sticker set
      * @param int|string $chat_id Unique identifier for the target chat or username of the target supergroup (in the format @supergroupusername)
@@ -1257,7 +1264,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('setChatStickerSet', $vars), ['true']);
     }
-    
+
     /**
      * Unique identifier for the target chat or username of the target supergroup (in the format @supergroupusername)
      * @param int|string $chat_id Unique identifier for the target chat or username of the target supergroup (in the format @supergroupusername)
@@ -1270,7 +1277,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('deleteChatStickerSet', $vars), ['true']);
     }
-    
+
     /**
      * Unique identifier of the custom emoji shown as the topic icon. Use getForumTopicIconStickers to get all allowed custom emoji identifiers.
      * @param int|string $chat_id Unique identifier for the target chat or username of the target supergroup (in the format @supergroupusername)
@@ -1286,7 +1293,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('getForumTopicIconStickers', $vars), [ForumTopic::class]);
     }
-    
+
     /**
      * Unique identifier of the custom emoji shown as the topic icon. Use getForumTopicIconStickers to get all allowed custom emoji identifiers.
      * @param int|string $chat_id Unique identifier for the target chat or username of the target supergroup (in the format @supergroupusername)
@@ -1302,7 +1309,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('createForumTopic', $vars), [ForumTopic::class]);
     }
-    
+
     /**
      * New unique identifier of the custom emoji shown as the topic icon. Use getForumTopicIconStickers to get all allowed custom emoji identifiers. Pass an empty string to remove the icon. If not specified, the current icon will be kept
      * @param int|string $chat_id Unique identifier for the target chat or username of the target supergroup (in the format @supergroupusername)
@@ -1318,7 +1325,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('editForumTopic', $vars), ['true']);
     }
-    
+
     /**
      * Unique identifier for the target message thread of the forum topic
      * @param int|string $chat_id Unique identifier for the target chat or username of the target supergroup (in the format @supergroupusername)
@@ -1332,7 +1339,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('closeForumTopic', $vars), ['true']);
     }
-    
+
     /**
      * Unique identifier for the target message thread of the forum topic
      * @param int|string $chat_id Unique identifier for the target chat or username of the target supergroup (in the format @supergroupusername)
@@ -1346,7 +1353,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('reopenForumTopic', $vars), ['true']);
     }
-    
+
     /**
      * Unique identifier for the target message thread of the forum topic
      * @param int|string $chat_id Unique identifier for the target chat or username of the target supergroup (in the format @supergroupusername)
@@ -1360,7 +1367,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('deleteForumTopic', $vars), ['true']);
     }
-    
+
     /**
      * Unique identifier for the target message thread of the forum topic
      * @param int|string $chat_id Unique identifier for the target chat or username of the target supergroup (in the format @supergroupusername)
@@ -1374,7 +1381,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('unpinAllForumTopicMessages', $vars), ['true']);
     }
-    
+
     /**
      * New topic name, 1-128 characters
      * @param int|string $chat_id Unique identifier for the target chat or username of the target supergroup (in the format @supergroupusername)
@@ -1388,7 +1395,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('editGeneralForumTopic', $vars), ['true']);
     }
-    
+
     /**
      * Unique identifier for the target chat or username of the target supergroup (in the format @supergroupusername)
      * @param int|string $chat_id Unique identifier for the target chat or username of the target supergroup (in the format @supergroupusername)
@@ -1401,7 +1408,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('closeGeneralForumTopic', $vars), ['true']);
     }
-    
+
     /**
      * Unique identifier for the target chat or username of the target supergroup (in the format @supergroupusername)
      * @param int|string $chat_id Unique identifier for the target chat or username of the target supergroup (in the format @supergroupusername)
@@ -1414,7 +1421,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('reopenGeneralForumTopic', $vars), ['true']);
     }
-    
+
     /**
      * Unique identifier for the target chat or username of the target supergroup (in the format @supergroupusername)
      * @param int|string $chat_id Unique identifier for the target chat or username of the target supergroup (in the format @supergroupusername)
@@ -1427,7 +1434,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('hideGeneralForumTopic', $vars), ['true']);
     }
-    
+
     /**
      * Unique identifier for the target chat or username of the target supergroup (in the format @supergroupusername)
      * @param int|string $chat_id Unique identifier for the target chat or username of the target supergroup (in the format @supergroupusername)
@@ -1440,7 +1447,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('unhideGeneralForumTopic', $vars), ['true']);
     }
-    
+
     /**
      * Unique identifier for the target chat or username of the target supergroup (in the format @supergroupusername)
      * @param int|string $chat_id Unique identifier for the target chat or username of the target supergroup (in the format @supergroupusername)
@@ -1453,7 +1460,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('unpinAllGeneralForumTopicMessages', $vars), ['true']);
     }
-    
+
     /**
      * The maximum amount of time in seconds that the result of the callback query may be cached client-side. Telegram apps will support caching starting in version 3.14. Defaults to 0.
      * @param string $callback_query_id Unique identifier for the query to be answered
@@ -1470,7 +1477,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('answerCallbackQuery', $vars), ['mixed']);
     }
-    
+
     /**
      * Unique identifier of the target user
      * @param int|string $chat_id Unique identifier for the chat or username of the channel (in the format @channelusername)
@@ -1484,7 +1491,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('getUserChatBoosts', $vars), [UserChatBoosts::class]);
     }
-    
+
     /**
      * Unique identifier of the business connection
      * @param string $business_connection_id Unique identifier of the business connection
@@ -1497,7 +1504,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('getBusinessConnection', $vars), [BusinessConnection::class]);
     }
-    
+
     /**
      * A two-letter ISO 639-1 language code. If empty, commands will be applied to all users from the given scope, for whose language there are no dedicated commands
      * @param array<\MemoGram\Api\Types\BotCommand> $commands A JSON-serialized list of bot commands to be set as the list of the bot's commands. At most 100 commands can be specified.
@@ -1512,7 +1519,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('setMyCommands', $vars), ['true']);
     }
-    
+
     /**
      * A two-letter ISO 639-1 language code. If empty, commands will be applied to all users from the given scope, for whose language there are no dedicated commands
      * @param BotCommandScope|null $scope A JSON-serialized object, describing scope of users for which the commands are relevant. Defaults to BotCommandScopeDefault.
@@ -1526,7 +1533,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('deleteMyCommands', $vars), ['true']);
     }
-    
+
     /**
      * A two-letter ISO 639-1 language code or an empty string
      * @param BotCommandScope|null $scope A JSON-serialized object, describing scope of users. Defaults to BotCommandScopeDefault.
@@ -1540,7 +1547,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('getMyCommands', $vars), ['array', BotCommand::class]);
     }
-    
+
     /**
      * A two-letter ISO 639-1 language code. If empty, the name will be shown to all users for whose language there is no dedicated name.
      * @param string|null $name New bot name; 0-64 characters. Pass an empty string to remove the dedicated name for the given language.
@@ -1554,7 +1561,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('setMyName', $vars), ['true']);
     }
-    
+
     /**
      * A two-letter ISO 639-1 language code or an empty string
      * @param string|null $language_code A two-letter ISO 639-1 language code or an empty string
@@ -1567,7 +1574,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('getMyName', $vars), [BotName::class]);
     }
-    
+
     /**
      * A two-letter ISO 639-1 language code. If empty, the description will be applied to all users for whose language there is no dedicated description.
      * @param string|null $description New bot description; 0-512 characters. Pass an empty string to remove the dedicated description for the given language.
@@ -1581,7 +1588,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('setMyDescription', $vars), ['true']);
     }
-    
+
     /**
      * A two-letter ISO 639-1 language code or an empty string
      * @param string|null $language_code A two-letter ISO 639-1 language code or an empty string
@@ -1594,7 +1601,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('getMyDescription', $vars), [BotDescription::class]);
     }
-    
+
     /**
      * A two-letter ISO 639-1 language code. If empty, the short description will be applied to all users for whose language there is no dedicated short description.
      * @param string|null $short_description New short description for the bot; 0-120 characters. Pass an empty string to remove the dedicated short description for the given language.
@@ -1608,7 +1615,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('setMyShortDescription', $vars), ['true']);
     }
-    
+
     /**
      * A two-letter ISO 639-1 language code or an empty string
      * @param string|null $language_code A two-letter ISO 639-1 language code or an empty string
@@ -1621,7 +1628,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('getMyShortDescription', $vars), [BotShortDescription::class]);
     }
-    
+
     /**
      * A JSON-serialized object for the bot's new menu button. Defaults to MenuButtonDefault
      * @param int|null $chat_id Unique identifier for the target private chat. If not specified, default bot's menu button will be changed
@@ -1635,7 +1642,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('setChatMenuButton', $vars), ['true']);
     }
-    
+
     /**
      * Unique identifier for the target private chat. If not specified, default bot's menu button will be returned
      * @param int|null $chat_id Unique identifier for the target private chat. If not specified, default bot's menu button will be returned
@@ -1648,7 +1655,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('getChatMenuButton', $vars), [MenuButton::class]);
     }
-    
+
     /**
      * Pass True to change the default administrator rights of the bot in channels. Otherwise, the default administrator rights of the bot for groups and supergroups will be changed.
      * @param ChatAdministratorRights|null $rights A JSON-serialized object describing new default administrator rights. If not specified, the default administrator rights will be cleared.
@@ -1662,7 +1669,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('setMyDefaultAdministratorRights', $vars), ['true']);
     }
-    
+
     /**
      * Pass True to get default administrator rights of the bot in channels. Otherwise, default administrator rights of the bot for groups and supergroups will be returned.
      * @param bool|null $for_channels Pass True to get default administrator rights of the bot in channels. Otherwise, default administrator rights of the bot for groups and supergroups will be returned.
@@ -1675,7 +1682,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('getMyDefaultAdministratorRights', $vars), [ChatAdministratorRights::class]);
     }
-    
+
     /**
      * A JSON-serialized list of special entities that appear in the gift text. It can be specified instead of text_parse_mode. Entities other than “bold”, “italic”, “underline”, “strikethrough”, “spoiler”, and “custom_emoji” are ignored.
      * @param string $gift_id Identifier of the gift
@@ -1694,7 +1701,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('getAvailableGifts', $vars), ['true']);
     }
-    
+
     /**
      * A JSON-serialized list of special entities that appear in the gift text. It can be specified instead of text_parse_mode. Entities other than “bold”, “italic”, “underline”, “strikethrough”, “spoiler”, and “custom_emoji” are ignored.
      * @param string $gift_id Identifier of the gift
@@ -1713,7 +1720,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('sendGift', $vars), ['true']);
     }
-    
+
     /**
      * A JSON-serialized list of special entities that appear in the gift text. It can be specified instead of text_parse_mode. Entities other than “bold”, “italic”, “underline”, “strikethrough”, “spoiler”, and “custom_emoji” are ignored.
      * @param int $user_id Unique identifier of the target user who will receive a Telegram Premium subscription
@@ -1731,7 +1738,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('giftPremiumSubscription', $vars), ['true']);
     }
-    
+
     /**
      * Custom description for the verification; 0-70 characters. Must be empty if the organization isn't allowed to provide a custom verification description.
      * @param int $user_id Unique identifier of the target user
@@ -1745,7 +1752,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('verifyUser', $vars), ['true']);
     }
-    
+
     /**
      * Custom description for the verification; 0-70 characters. Must be empty if the organization isn't allowed to provide a custom verification description.
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername). Channel direct messages chats can't be verified.
@@ -1759,7 +1766,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('verifyChat', $vars), ['true']);
     }
-    
+
     /**
      * Unique identifier of the target user
      * @param int $user_id Unique identifier of the target user
@@ -1772,7 +1779,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('removeUserVerification', $vars), ['true']);
     }
-    
+
     /**
      * Unique identifier for the target chat or username of the target channel (in the format @channelusername)
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -1785,7 +1792,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('removeChatVerification', $vars), ['true']);
     }
-    
+
     /**
      * Unique identifier of the message to mark as read
      * @param string $business_connection_id Unique identifier of the business connection on behalf of which to read the message
@@ -1800,7 +1807,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('readBusinessMessage', $vars), ['true']);
     }
-    
+
     /**
      * A JSON-serialized list of 1-100 identifiers of messages to delete. All messages must be from the same chat. See deleteMessage for limitations on which messages can be deleted
      * @param string $business_connection_id Unique identifier of the business connection on behalf of which to delete the messages
@@ -1814,7 +1821,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('deleteBusinessMessages', $vars), ['true']);
     }
-    
+
     /**
      * The new value of the last name for the business account; 0-64 characters
      * @param string $business_connection_id Unique identifier of the business connection
@@ -1829,7 +1836,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('setBusinessAccountName', $vars), ['true']);
     }
-    
+
     /**
      * The new value of the username for the business account; 0-32 characters
      * @param string $business_connection_id Unique identifier of the business connection
@@ -1843,7 +1850,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('setBusinessAccountUsername', $vars), ['true']);
     }
-    
+
     /**
      * The new value of the bio for the business account; 0-140 characters
      * @param string $business_connection_id Unique identifier of the business connection
@@ -1857,7 +1864,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('setBusinessAccountBio', $vars), ['true']);
     }
-    
+
     /**
      * Pass True to set the public photo, which will be visible even if the main photo is hidden by the business account's privacy settings. An account can have only one public photo.
      * @param string $business_connection_id Unique identifier of the business connection
@@ -1865,14 +1872,14 @@ class TelegramApi
      * @param bool|null $is_public Pass True to set the public photo, which will be visible even if the main photo is hidden by the business account's privacy settings. An account can have only one public photo.
      * @return true|null
      */
-    public function setBusinessAccountProfilePhoto(string $business_connection_id, InputProfilePhoto $photo, ?bool $is_public = null, ...$args): true|null
+    public function setBusinessAccountProfilePhoto(string $business_connection_id, InputProfilePhotoStatic|InputProfilePhotoAnimated $photo, ?bool $is_public = null, ...$args): true|null
     {
         $vars = get_defined_vars();
         unset($vars['args']);
         $vars += $args;
         return $this->castValue($this->call('setBusinessAccountProfilePhoto', $vars), ['true']);
     }
-    
+
     /**
      * Pass True to remove the public photo, which is visible even if the main photo is hidden by the business account's privacy settings. After the main photo is removed, the previous profile photo (if present) becomes the main photo.
      * @param string $business_connection_id Unique identifier of the business connection
@@ -1886,7 +1893,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('removeBusinessAccountProfilePhoto', $vars), ['true']);
     }
-    
+
     /**
      * Types of gifts accepted by the business account
      * @param string $business_connection_id Unique identifier of the business connection
@@ -1901,7 +1908,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('setBusinessAccountGiftSettings', $vars), ['true']);
     }
-    
+
     /**
      * Unique identifier of the business connection
      * @param string $business_connection_id Unique identifier of the business connection
@@ -1914,7 +1921,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('getBusinessAccountStarBalance', $vars), ['int']);
     }
-    
+
     /**
      * Number of Telegram Stars to transfer; 1-10000
      * @param string $business_connection_id Unique identifier of the business connection
@@ -1928,7 +1935,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('transferBusinessAccountStars', $vars), ['true']);
     }
-    
+
     /**
      * The maximum number of gifts to be returned; 1-100. Defaults to 100
      * @param string $business_connection_id Unique identifier of the business connection
@@ -1949,7 +1956,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('getBusinessAccountGifts', $vars), ['mixed']);
     }
-    
+
     /**
      * Unique identifier of the regular gift that should be converted to Telegram Stars
      * @param string $business_connection_id Unique identifier of the business connection
@@ -1963,7 +1970,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('convertGiftToStars', $vars), ['true']);
     }
-    
+
     /**
      * The amount of Telegram Stars that will be paid for the upgrade from the business account balance. If gift.prepaid_upgrade_star_count > 0, then pass 0, otherwise, the can_transfer_stars business bot right is required and gift.upgrade_star_count must be passed.
      * @param string $business_connection_id Unique identifier of the business connection
@@ -1979,7 +1986,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('upgradeGift', $vars), ['true']);
     }
-    
+
     /**
      * The amount of Telegram Stars that will be paid for the transfer from the business account balance. If positive, then the can_transfer_stars business bot right is required.
      * @param string $business_connection_id Unique identifier of the business connection
@@ -1995,7 +2002,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('transferGift', $vars), ['true']);
     }
-    
+
     /**
      * Pass True if the content of the story must be protected from forwarding and screenshotting
      * @param string $business_connection_id Unique identifier of the business connection
@@ -2009,14 +2016,14 @@ class TelegramApi
      * @param bool|null $protect_content Pass True if the content of the story must be protected from forwarding and screenshotting
      * @return Story|null
      */
-    public function postStory(string $business_connection_id, InputStoryContent $content, int $active_period, ?string $caption = null, ?string $parse_mode = null, ?array $caption_entities = null, ?array $areas = null, ?bool $post_to_chat_page = null, ?bool $protect_content = null, ...$args): Story|null
+    public function postStory(string $business_connection_id, InputStoryContentPhoto|InputStoryContentVideo $content, int $active_period, ?string $caption = null, ?string $parse_mode = null, ?array $caption_entities = null, ?array $areas = null, ?bool $post_to_chat_page = null, ?bool $protect_content = null, ...$args): Story|null
     {
         $vars = get_defined_vars();
         unset($vars['args']);
         $vars += $args;
         return $this->castValue($this->call('postStory', $vars), [Story::class]);
     }
-    
+
     /**
      * A JSON-serialized list of clickable areas to be shown on the story
      * @param string $business_connection_id Unique identifier of the business connection
@@ -2028,14 +2035,14 @@ class TelegramApi
      * @param array<\MemoGram\Api\Types\StoryArea>|null $areas A JSON-serialized list of clickable areas to be shown on the story
      * @return Story|null
      */
-    public function editStory(string $business_connection_id, int $story_id, InputStoryContent $content, ?string $caption = null, ?string $parse_mode = null, ?array $caption_entities = null, ?array $areas = null, ...$args): Story|null
+    public function editStory(string $business_connection_id, int $story_id, InputStoryContentPhoto|InputStoryContentVideo $content, ?string $caption = null, ?string $parse_mode = null, ?array $caption_entities = null, ?array $areas = null, ...$args): Story|null
     {
         $vars = get_defined_vars();
         unset($vars['args']);
         $vars += $args;
         return $this->castValue($this->call('editStory', $vars), [Story::class]);
     }
-    
+
     /**
      * Unique identifier of the story to delete
      * @param string $business_connection_id Unique identifier of the business connection
@@ -2049,7 +2056,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('deleteStory', $vars), ['true']);
     }
-    
+
     /**
      * A JSON-serialized object for an inline keyboard.
      * @param string $text New text of the message, 1-4096 characters after entities parsing
@@ -2070,7 +2077,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('editMessageText', $vars), ['mixed']);
     }
-    
+
     /**
      * A JSON-serialized object for an inline keyboard.
      * @param string|null $business_connection_id Unique identifier of the business connection on behalf of which the message to be edited was sent
@@ -2091,10 +2098,10 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('editMessageCaption', $vars), ['mixed']);
     }
-    
+
     /**
      * A JSON-serialized object for a new inline keyboard.
-     * @param InputMedia $media A JSON-serialized object for a new media content of the message
+     * @param InputMediaPhoto|InputMediaVideo|InputMediaAnimation|InputMediaAudio|InputMediaDocument|array $media A JSON-serialized object for a new media content of the message
      * @param string|null $business_connection_id Unique identifier of the business connection on behalf of which the message to be edited was sent
      * @param int|string|null $chat_id Required if inline_message_id is not specified. Unique identifier for the target chat or username of the target channel (in the format @channelusername)
      * @param int|null $message_id Required if inline_message_id is not specified. Identifier of the message to edit
@@ -2102,14 +2109,14 @@ class TelegramApi
      * @param InlineKeyboardMarkup|null $reply_markup A JSON-serialized object for a new inline keyboard.
      * @return mixed
      */
-    public function editMessageMedia(InputMedia $media, ?string $business_connection_id = null, int|string|null $chat_id = null, ?int $message_id = null, ?string $inline_message_id = null, ?InlineKeyboardMarkup $reply_markup = null, ...$args): mixed
+    public function editMessageMedia(InputMediaPhoto|InputMediaVideo|InputMediaAnimation|InputMediaAudio|InputMediaDocument|array $media, ?string $business_connection_id = null, int|string|null $chat_id = null, ?int $message_id = null, ?string $inline_message_id = null, ?InlineKeyboardMarkup $reply_markup = null, ...$args): mixed
     {
         $vars = get_defined_vars();
         unset($vars['args']);
         $vars += $args;
         return $this->castValue($this->call('editMessageMedia', $vars), ['mixed']);
     }
-    
+
     /**
      * A JSON-serialized object for a new inline keyboard.
      * @param float $latitude Latitude of new location
@@ -2132,7 +2139,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('editMessageLiveLocation', $vars), ['mixed']);
     }
-    
+
     /**
      * A JSON-serialized object for a new inline keyboard.
      * @param string|null $business_connection_id Unique identifier of the business connection on behalf of which the message to be edited was sent
@@ -2149,7 +2156,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('stopMessageLiveLocation', $vars), ['mixed']);
     }
-    
+
     /**
      * A JSON-serialized object for the new inline keyboard for the message
      * @param string $business_connection_id Unique identifier of the business connection on behalf of which the message will be sent
@@ -2166,7 +2173,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('editMessageChecklist', $vars), ['mixed']);
     }
-    
+
     /**
      * A JSON-serialized object for an inline keyboard.
      * @param string|null $business_connection_id Unique identifier of the business connection on behalf of which the message to be edited was sent
@@ -2183,7 +2190,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('editMessageReplyMarkup', $vars), ['mixed']);
     }
-    
+
     /**
      * A JSON-serialized object for a new message inline keyboard.
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -2199,7 +2206,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('stopPoll', $vars), ['mixed']);
     }
-    
+
     /**
      * Point in time (Unix timestamp) when the post is expected to be published; omit if the date has already been specified when the suggested post was created. If specified, then the date must be not more than 2678400 seconds (30 days) in the future
      * @param int $chat_id Unique identifier for the target direct messages chat
@@ -2214,7 +2221,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('approveSuggestedPost', $vars), ['true']);
     }
-    
+
     /**
      * Comment for the creator of the suggested post; 0-128 characters
      * @param int $chat_id Unique identifier for the target direct messages chat
@@ -2229,7 +2236,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('declineSuggestedPost', $vars), ['true']);
     }
-    
+
     /**
      * Identifier of the message to delete
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -2243,7 +2250,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('deleteMessage', $vars), ['true']);
     }
-    
+
     /**
      * A JSON-serialized list of 1-100 identifiers of messages to delete. See deleteMessage for limitations on which messages can be deleted
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -2257,7 +2264,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('deleteMessages', $vars), ['true']);
     }
-    
+
     /**
      * Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove a reply keyboard or to force a reply from the user
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -2282,7 +2289,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('sendSticker', $vars), [Message::class]);
     }
-    
+
     /**
      * Name of the sticker set
      * @param string $name Name of the sticker set
@@ -2295,7 +2302,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('getStickerSet', $vars), ['mixed']);
     }
-    
+
     /**
      * A JSON-serialized list of custom emoji identifiers. At most 200 custom emoji identifiers can be specified.
      * @param array<\MemoGram\Api\Types\string> $custom_emoji_ids A JSON-serialized list of custom emoji identifiers. At most 200 custom emoji identifiers can be specified.
@@ -2308,7 +2315,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('getCustomEmojiStickers', $vars), ['array', Sticker::class]);
     }
-    
+
     /**
      * Format of the sticker, must be one of “static”, “animated”, “video”
      * @param int $user_id User identifier of sticker file owner
@@ -2323,7 +2330,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('uploadStickerFile', $vars), [File::class]);
     }
-    
+
     /**
      * Pass True if stickers in the sticker set must be repainted to the color of text when used in messages, the accent color if used as emoji status, white on chat photos, or another appropriate color based on context; for custom emoji sticker sets only
      * @param int $user_id User identifier of created sticker set owner
@@ -2341,7 +2348,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('createNewStickerSet', $vars), ['true']);
     }
-    
+
     /**
      * A JSON-serialized object with information about the added sticker. If exactly the same sticker had already been added to the set, then the set isn't changed.
      * @param int $user_id User identifier of sticker set owner
@@ -2356,7 +2363,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('addStickerToSet', $vars), ['true']);
     }
-    
+
     /**
      * New sticker position in the set, zero-based
      * @param string $sticker File identifier of the sticker
@@ -2370,7 +2377,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('setStickerPositionInSet', $vars), ['true']);
     }
-    
+
     /**
      * File identifier of the sticker
      * @param string $sticker File identifier of the sticker
@@ -2383,7 +2390,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('deleteStickerFromSet', $vars), ['true']);
     }
-    
+
     /**
      * A JSON-serialized object with information about the added sticker. If exactly the same sticker had already been added to the set, then the set remains unchanged.
      * @param int $user_id User identifier of the sticker set owner
@@ -2399,7 +2406,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('replaceStickerInSet', $vars), ['true']);
     }
-    
+
     /**
      * A JSON-serialized list of 1-20 emoji associated with the sticker
      * @param string $sticker File identifier of the sticker
@@ -2413,7 +2420,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('setStickerEmojiList', $vars), ['true']);
     }
-    
+
     /**
      * A JSON-serialized list of 0-20 search keywords for the sticker with total length of up to 64 characters
      * @param string $sticker File identifier of the sticker
@@ -2427,7 +2434,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('setStickerKeywords', $vars), ['true']);
     }
-    
+
     /**
      * A JSON-serialized object with the position where the mask should be placed on faces. Omit the parameter to remove the mask position.
      * @param string $sticker File identifier of the sticker
@@ -2441,7 +2448,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('setStickerMaskPosition', $vars), ['true']);
     }
-    
+
     /**
      * Sticker set title, 1-64 characters
      * @param string $name Sticker set name
@@ -2455,7 +2462,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('setStickerSetTitle', $vars), ['true']);
     }
-    
+
     /**
      * Format of the thumbnail, must be one of “static” for a .WEBP or .PNG image, “animated” for a .TGS animation, or “video” for a .WEBM video
      * @param string $name Sticker set name
@@ -2471,7 +2478,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('setStickerSetThumbnail', $vars), ['true']);
     }
-    
+
     /**
      * Custom emoji identifier of a sticker from the sticker set; pass an empty string to drop the thumbnail and use the first sticker as the thumbnail.
      * @param string $name Sticker set name
@@ -2485,7 +2492,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('setCustomEmojiStickerSetThumbnail', $vars), ['true']);
     }
-    
+
     /**
      * Sticker set name
      * @param string $name Sticker set name
@@ -2498,7 +2505,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('deleteStickerSet', $vars), ['true']);
     }
-    
+
     /**
      * A JSON-serialized object describing a button to be shown above inline query results
      * @param string $inline_query_id Unique identifier for the answered query
@@ -2516,7 +2523,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('answerInlineQuery', $vars), ['mixed']);
     }
-    
+
     /**
      * A JSON-serialized object describing the message to be sent
      * @param string $web_app_query_id Unique identifier for the query to be answered
@@ -2530,7 +2537,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('answerWebAppQuery', $vars), ['mixed']);
     }
-    
+
     /**
      * Pass True if the message can be sent to channel chats
      * @param int $user_id Unique identifier of the target user that can use the prepared message
@@ -2548,7 +2555,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('savePreparedInlineMessage', $vars), [PreparedInlineMessage::class]);
     }
-    
+
     /**
      * A JSON-serialized object for an inline keyboard. If empty, one 'Pay total price' button will be shown. If not empty, the first button must be a Pay button.
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -2591,7 +2598,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('sendInvoice', $vars), [Message::class]);
     }
-    
+
     /**
      * Pass True if the final price depends on the shipping method. Ignored for payments in Telegram Stars.
      * @param string $title Product name, 1-32 characters
@@ -2625,7 +2632,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('createInvoiceLink', $vars), ['string']);
     }
-    
+
     /**
      * Required if ok is False. Error message in human readable form that explains why it is impossible to complete the order (e.g. “Sorry, delivery to your desired address is unavailable”). Telegram will display this message to the user.
      * @param string $shipping_query_id Unique identifier for the query to be answered
@@ -2641,7 +2648,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('answerShippingQuery', $vars), ['mixed']);
     }
-    
+
     /**
      * Required if ok is False. Error message in human readable form that explains the reason for failure to proceed with the checkout (e.g. "Sorry, somebody just bought the last of our amazing black T-shirts while you were busy filling out your payment details. Please choose a different color or garment!"). Telegram will display this message to the user.
      * @param string $pre_checkout_query_id Unique identifier for the query to be answered
@@ -2656,7 +2663,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('answerPreCheckoutQuery', $vars), ['mixed']);
     }
-    
+
     /**
      * The maximum number of transactions to be retrieved. Values between 1-100 are accepted. Defaults to 100.
      * @param int|null $offset Number of transactions to skip in the response
@@ -2670,7 +2677,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('getMyStarBalance', $vars), ['mixed']);
     }
-    
+
     /**
      * The maximum number of transactions to be retrieved. Values between 1-100 are accepted. Defaults to 100.
      * @param int|null $offset Number of transactions to skip in the response
@@ -2684,7 +2691,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('getStarTransactions', $vars), ['mixed']);
     }
-    
+
     /**
      * Telegram payment identifier
      * @param int $user_id Identifier of the user whose payment will be refunded
@@ -2698,7 +2705,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('refundStarPayment', $vars), ['true']);
     }
-    
+
     /**
      * Pass True to cancel extension of the user subscription; the subscription must be active up to the end of the current subscription period. Pass False to allow the user to re-enable a subscription that was previously canceled by the bot.
      * @param int $user_id Identifier of the user whose subscription will be edited
@@ -2713,7 +2720,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('editUserStarSubscription', $vars), ['true']);
     }
-    
+
     /**
      * A JSON-serialized array describing the errors
      * @param int $user_id User identifier
@@ -2727,7 +2734,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('setPassportDataErrors', $vars), ['true']);
     }
-    
+
     /**
      * A JSON-serialized object for an inline keyboard. If empty, one 'Play game_title' button will be shown. If not empty, the first button must launch the game.
      * @param int $chat_id Unique identifier for the target chat. Games can't be sent to channel direct messages chats and channel chats.
@@ -2749,7 +2756,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('sendGame', $vars), [Message::class]);
     }
-    
+
     /**
      * Required if chat_id and message_id are not specified. Identifier of the inline message
      * @param int $user_id User identifier
@@ -2768,7 +2775,7 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('setGameScore', $vars), [[Message::class, 'true']]);
     }
-    
+
     /**
      * Required if chat_id and message_id are not specified. Identifier of the inline message
      * @param int $user_id Target user id
@@ -2784,6 +2791,6 @@ class TelegramApi
         $vars += $args;
         return $this->castValue($this->call('getGameHighScores', $vars), ['array', GameHighScore::class]);
     }
-    
-    
+
+
 }

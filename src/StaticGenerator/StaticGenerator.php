@@ -17,6 +17,37 @@ class StaticGenerator
                 [null, 'Message'],
             ],
         ],
+        'InputMedia' => [
+            'key' => 'type',
+            'values' => [
+                ['photo', 'InputMediaPhoto'],
+                ['video', 'InputMediaVideo'],
+                ['animation', 'InputMediaAnimation'],
+                ['audio', 'InputMediaAudio'],
+                ['document', 'InputMediaDocument'],
+            ],
+        ],
+        'InputFile' => [
+            'key' => 'type',
+            'values' => [
+                ['photo', 'InputPaidMediaPhoto'],
+                ['video', 'InputPaidMediaVideo'],
+            ],
+        ],
+        'InputProfilePhoto' => [
+            'key' => 'type',
+            'values' => [
+                ['static', 'InputProfilePhotoStatic'],
+                ['animated', 'InputProfilePhotoAnimated'],
+            ],
+        ],
+        'InputStoryContent' => [
+            'key' => 'type',
+            'values' => [
+                ['photo', 'InputStoryContentPhoto'],
+                ['video', 'InputStoryContentVideo'],
+            ],
+        ],
     ];
 
     protected function generateApis(): void

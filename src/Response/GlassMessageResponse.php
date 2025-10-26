@@ -10,28 +10,15 @@ use MemoGram\Handle\Page;
 use MemoGram\Matching\ListenerDispatcher;
 use MemoGram\Matching\Listeners\OnGlassKey;
 use MemoGram\Models\PageCellModel;
+use MemoGram\Support\MessageContent;
 use function MemoGram\Handle\api;
 use function MemoGram\Handle\context;
 use function MemoGram\Handle\event;
 
-class GlassMessageResponse extends BaseResponse
+class GlassMessageResponse extends BaseMessageResponse
 {
-    public ?string $message = null;
-    public ?array $schema = null;
     protected bool $resend = false;
     protected bool $deleteOlder = true;
-
-    public function message(?string $message)
-    {
-        $this->message = $message;
-        return $this;
-    }
-
-    public function schema(?array $schema)
-    {
-        $this->schema = $schema;
-        return $this;
-    }
 
     public function resend(bool $deleteOlder = false)
     {
@@ -62,34 +49,43 @@ class GlassMessageResponse extends BaseResponse
         $chatId = event()?->getChatId();
         $messageId = event()?->getUserMessageId();
         $shouldReply = !($page && $cell) || !$this->deleteOlder;
+        $content = $this->getContent();
+        $isEditable = MessageContent::isEditable($content->type);
 
         [$hasCallback, $keyboardMarkup] = $this->getFormattedKeyboardMarkup();
 
-        if ($page && $cell && !$this->resend) {
+        $params = [
+            'chat_id' => $chatId,
+            'reply_markup' => $keyboardMarkup,
+        ];
+
+        if ($page && $cell && !$this->resend && $isEditable) {
             try {
-                api()->editMessageText(
-                    text: value($this->message),
-                    chat_id: $chatId,
-                    message_id: $cell->message_id,
-                    reply_markup: $keyboardMarkup,
-                );
+                ($content->getEditApi())(array_replace(
+                    $params,
+                    ['message_id' => $messageId],
+                    $content->getEditArgs(),
+                    $this->args,
+                ));
             } catch (RequestException $e) {
                 if ($e->response->json('description') != 'Bad Request: message is not modified') {
                     throw $e;
                 }
             }
         } else {
-            $message = api()->sendMessage(
-                chat_id: $chatId,
-                text: value($this->message),
-                reply_parameters: $shouldReply ? new ReplyParameters(
-                    message_id: $messageId,
-                    allow_sending_without_reply: true,
-                ) : null,
-                reply_markup: $keyboardMarkup,
-            );
+            $message = ($content->getApi())(array_replace(
+                $params,
+                [
+                    'reply_parameters' => $shouldReply ? new ReplyParameters(
+                        message_id: $messageId,
+                        allow_sending_without_reply: true,
+                    ) : null,
+                ],
+                $content->getArgs(),
+                $this->args,
+            ));
 
-            if ($page && $cell && $this->deleteOlder) {
+            if ($page && $cell && ($this->deleteOlder || !$isEditable)) {
                 try {
                     api()->deleteMessage(
                         chat_id: $chatId,
@@ -113,7 +109,7 @@ class GlassMessageResponse extends BaseResponse
     public function runListen(Page $page): void
     {
         $page->topListenUsing(function (ListenerDispatcher $match) {
-            if ($schema = $this->getFormattedSchema()) {
+            if ($schema = $this->getFormattedSchema(false)) {
                 foreach ($schema as $row) {
                     foreach ($row as $key) {
                         if ($key->then && !isset($key->url)) {
@@ -125,40 +121,9 @@ class GlassMessageResponse extends BaseResponse
         });
     }
 
-    /**
-     * @return GlassKey[][]
-     */
-    protected function getFormattedSchema(): array
-    {
-        if (!$this->schema) {
-            return [];
-        }
-
-        $all = [];
-
-        foreach ($this->schema as $row) {
-            if (is_null($row) || $row === false) continue;
-
-            $rowKey = [];
-
-            /** @var null|false|GlassKey $column */
-            foreach ($row as $column) {
-                if (is_null($column) || $column === false || !$column->interactable) continue;
-
-                $rowKey[] = $column;
-            }
-
-            if ($rowKey) {
-                $all[] = $rowKey;
-            }
-        }
-
-        return $all;
-    }
-
     protected function getFormattedKeyboardMarkup(): array
     {
-        $schema = $this->getFormattedSchema();
+        $schema = $this->getFormattedSchema(true);
 
         if (!$schema) {
             return [false, null];
