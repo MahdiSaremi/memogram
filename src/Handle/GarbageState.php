@@ -5,6 +5,7 @@ namespace MemoGram\Handle;
 class GarbageState
 {
     protected mixed $actualValue;
+    protected bool $used = false;
 
     public function __construct(
         protected State $state,
@@ -17,8 +18,11 @@ class GarbageState
 
     public function use()
     {
-        $this->state->value = $this->actualValue;
-        $this->state->sync();
+        if (!$this->used) {
+            $this->used = true;
+            $this->state->value = $this->actualValue;
+            $this->state->sync();
+        }
 
         return $this->state;
     }

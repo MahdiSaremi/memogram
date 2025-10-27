@@ -12,6 +12,9 @@ use MemoGram\Models\PageUseModel;
 use MemoGram\Tests\TestCase;
 use function MemoGram\Hooks\onAny;
 use function MemoGram\Hooks\open;
+use function MemoGram\Hooks\refresh;
+use function MemoGram\Hooks\useDynamic;
+use function MemoGram\Hooks\useState;
 use function MemoGram\Hooks\useVersion;
 use function MemoGram\Handle\{page, event};
 
@@ -199,6 +202,32 @@ class PageTest extends TestCase
         $this->assertSame([], $pageModel->states);
         $this->assertSame('2.1.4', $pageModel->version);
     }
+
+    public function testDynamicState()
+    {
+        $event = new FakeEvent(1, 1, 1);
+
+        $this->eventHandler->handleUsing($event, function () use ($event) {
+            $page = new Page([_PageTestClass::class, 'testDynamicState']);
+            $page->mount([]);
+        });
+
+        $pageModel = PageModel::query()->first();
+
+        $this->assertSame(_PageTestClass::class . '@testDynamicState', $pageModel->reference);
+        $this->assertSame([0, 0, [1, 2], 9], $pageModel->states);
+
+        $this->eventHandler->handleUsing($event, function () use ($event) {
+            $page = new Page([_PageTestClass::class, 'testDynamicState']);
+            $page->hydrate(PageUseModel::first());
+            $page->pushHydratedEvent($event, fn() => null);
+        });
+
+        $pageModel = PageModel::query()->first();
+
+        $this->assertSame(_PageTestClass::class . '@testDynamicState', $pageModel->reference);
+        $this->assertSame([1, 1, [3], 9], $pageModel->states);
+    }
 }
 
 class _PageTestClass
@@ -250,5 +279,26 @@ class _PageTestClass
         });
 
         return static::$a = new FakeResponse("This is a test for {$userId->value}.");
+    }
+
+    public function testDynamicState()
+    {
+        $key = useState(0);
+        useDynamic($key->value, function () use ($key) {
+            if ($key->value == 0) {
+                $one = useState(1);
+                $two = useState(2);
+            } else {
+                $three = useState(3);
+            }
+        });
+        $lastOne = useState(9);
+
+        onAny(function () use ($key) {
+            $key->value = 1;
+            refresh();
+        });
+
+        return static::$a = new FakeResponse("This is a test.");
     }
 }

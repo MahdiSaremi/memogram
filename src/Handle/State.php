@@ -19,6 +19,7 @@ class State extends ReadonlyState
     protected string $serializedPreviousValue;
     protected Type $type;
     protected ?Closure $storeUsing = null;
+    protected ?Closure $checkDirty = null;
 
     public function __construct(mixed $_value, bool $restored = false)
     {
@@ -62,6 +63,12 @@ class State extends ReadonlyState
         return $this;
     }
 
+    public function checkDirtyUsing(Closure $callback)
+    {
+        $this->checkDirty = $callback;
+        return $this;
+    }
+
     public function serialize()
     {
         return $this->using(
@@ -77,8 +84,15 @@ class State extends ReadonlyState
 
     public function dirty(): bool
     {
-        return $this->isDirty
-            || $this->previousValue !== $this->_value
+        if ($this->isDirty) {
+            return true;
+        }
+
+        if ($this->checkDirty) {
+            return ($this->checkDirty)($this->_value, $this->previousValue, $this->serializedPreviousValue);
+        }
+
+        return $this->previousValue !== $this->_value
             || (is_object($this->previousValue) && $this->serializedPreviousValue !== serialize($this->_value));
     }
 

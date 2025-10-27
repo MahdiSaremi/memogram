@@ -30,6 +30,32 @@ function useGarbageState($defaultValue): GarbageState
     return page()->useGarbageState($defaultValue);
 }
 
+/**
+ * @template T
+ * @param $key
+ * @param Closure(): T $callback
+ * @return T
+ */
+function useDynamic($key, Closure $callback): mixed
+{
+    return page()->useDynamic($key, $callback);
+}
+
+/**
+ * @template T
+ * @template E
+ * @param bool $condition
+ * @param Closure(): T $then
+ * @param null|Closure(): E $default
+ * @return T|E
+ */
+function useIf(bool $condition, Closure $then, ?Closure $default = null): mixed
+{
+    return page()->useDynamic($condition, function () use ($default, $condition, $then) {
+        return $condition ? $then() : value($default);
+    });
+}
+
 function useWatch(Closure $callback, array $dependencyList)
 {
     return page()->useWatch($callback, $dependencyList);

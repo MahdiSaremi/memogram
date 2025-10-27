@@ -27,7 +27,6 @@ class Page
     protected array $hydratedStates;
     /** @var State[] */
     protected array $states = [];
-    protected array $namedStates = [];
     protected int $statePointer = 0;
     public PageModel $pageModel;
     public ?PageUseModel $pageUseModel = null;
@@ -210,7 +209,6 @@ class Page
                     return $this->states[$this->statePointer] = new State($this->hydratedStates[$this->statePointer++], true);
                 } else {
                     return $this->states[$this->statePointer++] = new State(value($defaultValue));
-//                    throw new \Exception("State is not exists."); todo
                 }
 
             case self::STATUS_REFRESHING:
@@ -218,11 +216,66 @@ class Page
                     return $this->states[$this->statePointer++];
                 } else {
                     return $this->states[$this->statePointer++] = new State(value($defaultValue));
-//                    throw new \Exception("State is not exists."); todo
                 }
 
             default:
                 throw new \Exception("Invalid state.");
+        }
+    }
+
+    /**
+     * @template T
+     * @param mixed $key
+     * @param Closure(): T $callback
+     * @return T
+     */
+    public function useDynamic(mixed $key, Closure $callback): mixed
+    {
+        $keyState = $this->useState($key);
+        $isNew = $this->status == self::STATUS_MOUNTING || $keyState->value != $key;
+        $keyState->value = $key;
+
+        $states = $this->states;
+        $hydratedState = $this->hydratedStates ?? null;
+        $pointer = $this->statePointer;
+
+        try {
+            switch ($this->status) {
+                case self::STATUS_MOUNTING:
+                    $this->states = [];
+                    $result = $callback();
+                    $states[] = new DynamicState($this->states);
+                    break;
+
+                case self::STATUS_HYDRATING:
+                    $this->states = [];
+                    $this->hydratedStates = $isNew ? [] : $this->hydratedStates[$this->statePointer] ?? [];
+                    $this->statePointer = 0;
+                    $result = $callback();
+                    $states[] = new DynamicState($this->states, !$isNew);
+                    $pointer++;
+                    break;
+
+                case self::STATUS_REFRESHING:
+                    $this->states = $isNew ? [] : $this->states[$this->statePointer]->value;
+                    $this->statePointer = 0;
+                    $result = $callback();
+                    $states[$pointer++] = new DynamicState($this->states, !$isNew);
+                    break;
+
+                default:
+                    throw new \InvalidArgumentException();
+            }
+
+            return $result;
+        } finally {
+            $this->states = $states;
+            if (isset($hydratedState)) {
+                $this->hydratedStates = $hydratedState;
+            } else {
+                unset($this->hydratedStates);
+            }
+            $this->statePointer = $pointer;
         }
     }
 
