@@ -377,18 +377,16 @@ class Page
             return;
         }
 
-        $changedStates = [];
+        $dirtyStates = [];
         foreach ($this->states as $state) {
-            if ($state->dirty()) {
-                $changedStates[] = $state;
-            }
+            array_push($dirtyStates, ...$state->getDirtyStates());
         }
 
         foreach ($this->watchers as $watcher) {
             $ok = false;
             [$callback, $deps] = $watcher;
 
-            foreach ($changedStates as $state) {
+            foreach ($dirtyStates as $state) {
                 if (in_array($state, $deps, true)) {
                     $ok = true;
                     break;

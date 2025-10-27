@@ -96,6 +96,15 @@ class State extends ReadonlyState
             || (is_object($this->previousValue) && $this->serializedPreviousValue !== serialize($this->_value));
     }
 
+    public function getDirtyStates(): array
+    {
+        if ($this->dirty()) {
+            return [$this];
+        }
+
+        return [];
+    }
+
     public function sync(): void
     {
         $this->isDirty = false;

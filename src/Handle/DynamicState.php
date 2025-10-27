@@ -24,4 +24,13 @@ class DynamicState extends State
 
         return false;
     }
+
+    public function getDirtyStates(): array
+    {
+        $dirty = array_filter($this->_value, function (ReadonlyState $state) {
+            return $state instanceof State && $state->dirty();
+        });
+
+        return array_merge(empty($dirty) ? [] : [$this], $dirty);
+    }
 }
