@@ -2,10 +2,9 @@
 
 namespace MemoGram\Response;
 
+use Closure;
 use Illuminate\Support\Facades\Pipeline;
-use MemoGram\Api\Types\KeyboardButton;
 use MemoGram\Api\Types\Message;
-use MemoGram\Api\Types\ReplyKeyboardMarkup;
 use MemoGram\Api\Types\ReplyParameters;
 use MemoGram\Handle\Page;
 use MemoGram\Matching\ListenerDispatcher;
@@ -24,6 +23,7 @@ abstract class BaseMessageResponse extends BaseResponse
     protected bool $resetKeyboard = false;
     protected ?bool $save = null;
     protected ?bool $takeControl = null;
+    protected array $afterMessageRespond = [];
 
     public function message(?string $message)
     {
@@ -73,54 +73,12 @@ abstract class BaseMessageResponse extends BaseResponse
         return $this;
     }
 
-
-    public function runResponse(?Page $page, string $key): void
+    public function afterMessageRespond(Closure $callback)
     {
-        $chatId = event()?->getChatId();
-        $messageId = event()?->getUserMessageId();
-
-        $keyboardMarkup = $this->getFormattedKeyboardMarkup();
-
-        $message = api()->sendMessage(
-            chat_id: $chatId,
-            text: value($this->message),
-            reply_parameters: new ReplyParameters(
-                message_id: $messageId,
-                allow_sending_without_reply: true,
-            ),
-            reply_markup: $keyboardMarkup,
-        );
-
-        if ($this->save ?? ($this->takeControl || $keyboardMarkup)) {
-            $page->pageCells->push(
-                new PageCellModel([
-                    'message_id' => $message->message_id,
-                    'key' => $key,
-                    'is_taking_control' => $this->takeControl ?? ($keyboardMarkup !== null),
-                ]),
-            );
-        }
+        $this->afterMessageRespond[] = $callback;
+        return $this;
     }
 
-    public function runRefresh(Page $page, string $key, ?PageCellModel $cell): void
-    {
-        $this->runResponse($page, $key);
-    }
-
-    public function runListen(Page $page): void
-    {
-        $page->topListenUsing(function (ListenerDispatcher $match) {
-            if ($schema = $this->getFormattedSchema(false)) {
-                foreach ($schema as $row) {
-                    foreach ($row as $key) {
-                        if ($key->then) {
-                            $match->onKey($key);
-                        }
-                    }
-                }
-            }
-        });
-    }
 
     protected function getSchema(): array
     {

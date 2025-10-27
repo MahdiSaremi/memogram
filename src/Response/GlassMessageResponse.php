@@ -61,7 +61,7 @@ class GlassMessageResponse extends BaseMessageResponse
 
         if ($page && $cell && !$this->resend && $isEditable) {
             try {
-                ($content->getEditApi())(array_replace(
+                $message = ($content->getEditApi())(...array_replace(
                     $params,
                     ['message_id' => $messageId],
                     $content->getEditArgs(),
@@ -72,8 +72,12 @@ class GlassMessageResponse extends BaseMessageResponse
                     throw $e;
                 }
             }
+
+            foreach ($this->afterMessageRespond as $callback) {
+                $callback(@$message);
+            }
         } else {
-            $message = ($content->getApi())(array_replace(
+            $message = ($content->getApi())(...array_replace(
                 $params,
                 [
                     'reply_parameters' => $shouldReply ? new ReplyParameters(
@@ -84,6 +88,10 @@ class GlassMessageResponse extends BaseMessageResponse
                 $content->getArgs(),
                 $this->args,
             ));
+
+            foreach ($this->afterMessageRespond as $callback) {
+                $callback($message);
+            }
 
             if ($page && $cell && ($this->deleteOlder || !$isEditable)) {
                 try {

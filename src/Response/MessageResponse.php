@@ -23,7 +23,7 @@ class MessageResponse extends BaseMessageResponse
         $keyboardMarkup = $this->getFormattedKeyboardMarkup();
         $content = $this->getContent();
 
-        $message = ($content->getApi())(array_replace(
+        $message = ($content->getApi())(...array_replace(
             [
                 'chat_id' => $chatId,
                 'reply_parameters' => new ReplyParameters(
@@ -35,6 +35,10 @@ class MessageResponse extends BaseMessageResponse
             $content->getArgs(),
             $this->args,
         ));
+
+        foreach ($this->afterMessageRespond as $callback) {
+            $callback($message);
+        }
 
         if ($this->save ?? ($this->takeControl || $keyboardMarkup)) {
             $page->pageCells->push(
