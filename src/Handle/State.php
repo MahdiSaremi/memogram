@@ -4,6 +4,7 @@ namespace MemoGram\Handle;
 
 use Closure;
 use MemoGram\Support\Type;
+use function MemoGram\Hooks\hydrating;
 
 /**
  * @template T
@@ -19,6 +20,7 @@ class State extends ReadonlyState
     protected string $serializedPreviousValue;
     protected Type $type;
     protected ?Closure $storeUsing = null;
+    protected ?Closure $dirtySerializeUsing = null;
     protected ?Closure $checkDirty = null;
 
     public function __construct(mixed $_value, bool $restored = false)
@@ -53,13 +55,15 @@ class State extends ReadonlyState
         return $this;
     }
 
-    public function using(Closure $store, Closure $restore)
+    public function using(Closure $store, Closure $restore, ?Closure $dirtySerialize = null)
     {
-        if ($this->restored) {
+        if ($this->restored && hydrating()) {
             $this->_value = $restore($this->_value);
         }
 
         $this->storeUsing = $store;
+        $this->dirtySerializeUsing = $dirtySerialize ?? $store;
+        $this->sync();
         return $this;
     }
 
@@ -92,8 +96,7 @@ class State extends ReadonlyState
             return ($this->checkDirty)($this->_value, $this->previousValue, $this->serializedPreviousValue);
         }
 
-        return $this->previousValue !== $this->_value
-            || (is_object($this->previousValue) && $this->serializedPreviousValue !== serialize($this->_value));
+        return $this->serializeValue() != $this->serializedPreviousValue;
     }
 
     public function getDirtyStates(): array
@@ -109,11 +112,12 @@ class State extends ReadonlyState
     {
         $this->isDirty = false;
         $this->previousValue = $this->_value;
-        if (is_object($this->_value)) {
-            $this->serializedPreviousValue = serialize($this->_value);
-        } else {
-            unset($this->serializedPreviousValue);
-        }
+        $this->serializedPreviousValue = $this->serializeValue();
+    }
+
+    protected function serializeValue()
+    {
+        return ($this->dirtySerializeUsing ?? 'serialize')($this->_value);
     }
 
     public function getStorableValue(): mixed

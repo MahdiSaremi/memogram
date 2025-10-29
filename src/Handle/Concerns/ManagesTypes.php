@@ -22,7 +22,7 @@ trait ManagesTypes
         $key = array_values(Arr::wrap($key));
 
         $this->using(
-            store: function (?Model $model) use ($key) {
+            store: $store = function (?Model $model) use ($key) {
                 if ($model === null) {
                     return null;
                 }
@@ -48,6 +48,9 @@ trait ManagesTypes
                 }
 
                 return $query->firstOrFail();
+            },
+            dirtySerialize: function (?Model $model) use ($store) {
+                return serialize($store($model));
             },
         );
 

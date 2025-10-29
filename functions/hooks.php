@@ -18,6 +18,7 @@ use MemoGram\Response\GlassMessageResponse;
 use MemoGram\Response\Key;
 use MemoGram\Response\MessageResponse;
 use MemoGram\Response\TakeControl;
+use function MemoGram\Handle\eventHandler;
 use function MemoGram\Handle\page;
 
 function useState($defaultValue): State
@@ -188,4 +189,9 @@ function withMiddleware($middleware): RouteGroup
 function withPass($rule): RouteGroup
 {
     return currentListener()->withPass($rule);
+}
+
+function withGlobalMiddleware($middleware): void
+{
+    eventHandler()->withGlobalMiddleware($middleware);
 }

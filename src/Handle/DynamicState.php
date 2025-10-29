@@ -6,7 +6,7 @@ class DynamicState extends State
 {
     public function getStorableValue(): mixed
     {
-        return array_map(fn(ReadonlyState $state) => $state->value, $this->_value);
+        return array_map(fn(ReadonlyState $state) => $state instanceof State ? $state->getStorableValue() : $state->value, $this->_value);
     }
 
     public function dirty(): bool
@@ -23,6 +23,14 @@ class DynamicState extends State
         }
 
         return false;
+    }
+
+    protected function serializeValue()
+    {
+        return implode(
+            "|",
+            array_map(fn(ReadonlyState $state) => $state instanceof State ? $state->serializeValue() : null, $this->_value),
+        );
     }
 
     public function getDirtyStates(): array

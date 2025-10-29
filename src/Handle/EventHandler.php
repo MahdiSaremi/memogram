@@ -5,6 +5,7 @@ namespace MemoGram\Handle;
 use Closure;
 use Generator;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Arr;
 use MemoGram\Api\TelegramApi;
 use MemoGram\Exceptions\StopPage;
 use MemoGram\Handle\Middleware\Middleware;
@@ -21,6 +22,7 @@ class EventHandler
     public static ?Context $current = null;
 
     protected ListenerDispatcher $staticListener;
+    protected array $globalMiddlewares = [];
 
     /**
      * @var Page[]
@@ -56,6 +58,11 @@ class EventHandler
         return $this;
     }
 
+    public function withGlobalMiddleware($middleware): void
+    {
+        array_push($this->globalMiddlewares, ...Arr::wrap($middleware));
+    }
+
     public function useContext(Closure $callback): void
     {
         $this->handleUsing(null, $callback);
@@ -78,7 +85,7 @@ class EventHandler
                 event: $event,
             );
 
-            $callback();
+            $this->createMiddlewarePipeline($this->globalMiddlewares, $callback)();
         } finally {
             static::$current = $old;
         }

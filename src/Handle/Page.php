@@ -63,6 +63,7 @@ class Page
         $this->topListener = new ListenerDispatcher();
         $this->watchers = [];
         $this->replacedResponse = null;
+        $this->requireRefresh = false;
     }
 
     public function mount(array $params): void
@@ -111,7 +112,10 @@ class Page
 
         $this->callWatchers();
 
-        if ($this->requireRefresh) {
+        $refreshed = $this->requireRefresh;
+        $refreshedCounter = 0;
+
+        while ($this->requireRefresh && ++$refreshedCounter < 255) {
             $cells = $this->pageCells;
             $this->resetBasic();
             $this->status = self::STATUS_REFRESHING;
@@ -123,6 +127,13 @@ class Page
                     $response->runRefresh($this, $key, $cells->firstWhere('key', $key));
                 });
             });
+        }
+
+        if ($refreshedCounter >= 255) {
+            throw new \Exception("Infinite refreshing detected.");
+        }
+
+        if ($refreshed) {
             $this->updateDatabase();
         } elseif ($this->requireSave) {
             $this->updateDatabaseStates();
@@ -231,9 +242,14 @@ class Page
      */
     public function useDynamic(mixed $key, Closure $callback): mixed
     {
-        $keyState = $this->useState($key);
-        $isNew = $this->status == self::STATUS_MOUNTING || $keyState->value != $key;
-        $keyState->value = $key;
+        if ($this->status != self::STATUS_REFRESHING || $this->statePointer < count($this->states)) {
+            $keyState = $this->useState($key);
+            $isNew = $this->status == self::STATUS_MOUNTING || $keyState->value != $key;
+            $keyState->value = $key;
+        } else {
+            $this->states[$this->statePointer++] = new State($key);
+            $isNew = true;
+        }
 
         $states = $this->states;
         $hydratedState = $this->hydratedStates ?? null;
@@ -394,7 +410,13 @@ class Page
             }
 
             if ($ok) {
-                $callback();
+                context()->handler->pageStack[] = $this;
+
+                try {
+                    $callback();
+                } finally {
+                    array_pop(context()->handler->pageStack);
+                }
             }
         }
     }
