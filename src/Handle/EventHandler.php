@@ -47,12 +47,14 @@ class EventHandler
 
     public function routes(string|Closure $path)
     {
-        $this->staticListener->changeAsCurrent(function () use ($path) {
-            if (is_string($path)) {
-                require $path;
-            } else {
-                $path();
-            }
+        $this->useContext(function () use ($path) {
+            $this->staticListener->changeAsCurrent(function () use ($path) {
+                if (is_string($path)) {
+                    require $path;
+                } else {
+                    $path();
+                }
+            });
         });
 
         return $this;
@@ -65,7 +67,18 @@ class EventHandler
 
     public function useContext(Closure $callback): void
     {
-        $this->handleUsing(null, $callback);
+        $old = static::$current;
+
+        try {
+            static::$current = new Context(
+                handler: $this,
+                event: null,
+            );
+
+            $callback();
+        } finally {
+            static::$current = $old;
+        }
     }
 
     public function handle(Event $event): void

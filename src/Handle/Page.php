@@ -68,93 +68,94 @@ class Page
 
     public function mount(array $params): void
     {
-        $this->resetBasic();
-        $this->status = self::STATUS_MOUNTING;
-        $this->params = array_replace($this->params, $params);
-        $this->pageModel = new PageModel();
-        $this->pageCells = new Collection();
-        $this->version = null;
+        $this->usingPageContext(function () use ($params) {
+            $this->resetBasic();
+            $this->status = self::STATUS_MOUNTING;
+            $this->params = array_replace($this->params, $params);
+            $this->pageModel = new PageModel();
+            $this->pageCells = new Collection();
+            $this->version = null;
 
-        $this->callReference(function ($response) {
-            if ($this->replacedResponse) {
-                $response = $this->replacedResponse;
-            }
+            $this->callReference(function ($response) {
+                if ($this->replacedResponse) {
+                    $response = $this->replacedResponse;
+                }
 
-            eventHandler()->streamResponse($response, function (AsResponse $response, string $key) {
-                $response->runResponse($this, $key);
+                eventHandler()->streamResponse($response, function (AsResponse $response, string $key) {
+                    $response->runResponse($this, $key);
+                });
             });
+            $this->updateDatabase();
         });
-        $this->updateDatabase();
     }
 
     public function hydrate(PageUseModel $use): void
     {
-        $this->resetBasic();
-        $this->status = self::STATUS_HYDRATING;
-        $this->statePointer = 0;
-        $this->pageModel = $use->page;
-        $this->pageUseModel = $use;
-        $this->version = $use->page->version;
-        $this->pageCells = $this->pageUseModel->cells()->get();
-        $this->hydratedStates = $use->page->states;
+        $this->usingPageContext(function () use ($use) {
+            $this->resetBasic();
+            $this->status = self::STATUS_HYDRATING;
+            $this->statePointer = 0;
+            $this->pageModel = $use->page;
+            $this->pageUseModel = $use;
+            $this->version = $use->page->version;
+            $this->pageCells = $this->pageUseModel->cells()->get();
+            $this->hydratedStates = $use->page->states;
 
-        $this->callReference(function ($response) {
-            eventHandler()->streamResponse($response, function (AsResponse $response, string $key) {
-                $response->runListen($this);
+            $this->callReference(function ($response) {
+                eventHandler()->streamResponse($response, function (AsResponse $response, string $key) {
+                    $response->runListen($this);
+                });
             });
         });
     }
 
     public function pushHydratedEvent(Event $event, Closure $next): bool
     {
-        $this->requireRefresh = false;
-        $result = $this->pushHydratedEventWithoutRefreshing($event, $next);
+        return $this->usingPageContext(function () use ($next, $event) {
+            $this->requireRefresh = false;
+            $result = $this->pushHydratedEventWithoutRefreshing($event, $next);
 
-        $this->callWatchers();
+            $this->callWatchers();
 
-        $refreshed = $this->requireRefresh;
-        $refreshedCounter = 0;
+            $refreshed = $this->requireRefresh;
+            $refreshedCounter = 0;
 
-        while ($this->requireRefresh && ++$refreshedCounter < 255) {
-            $cells = $this->pageCells;
-            $this->resetBasic();
-            $this->status = self::STATUS_REFRESHING;
-            $this->statePointer = 0;
-            $this->pageCells = new Collection();
+            while ($this->requireRefresh && ++$refreshedCounter < 255) {
+                $cells = $this->pageCells;
+                $this->resetBasic();
+                $this->status = self::STATUS_REFRESHING;
+                $this->statePointer = 0;
+                $this->pageCells = new Collection();
 
-            $this->callReference(function ($response) use ($cells) {
-                eventHandler()->streamResponse($response, function (AsResponse $response, string $key) use ($cells) {
-                    $response->runRefresh($this, $key, $cells->firstWhere('key', $key));
+                $this->callReference(function ($response) use ($cells) {
+                    eventHandler()->streamResponse($response, function (AsResponse $response, string $key) use ($cells) {
+                        $response->runRefresh($this, $key, $cells->firstWhere('key', $key));
+                    });
                 });
-            });
-        }
+            }
 
-        if ($refreshedCounter >= 255) {
-            throw new \Exception("Infinite refreshing detected.");
-        }
+            if ($refreshedCounter >= 255) {
+                throw new \Exception("Infinite refreshing detected.");
+            }
 
-        if ($refreshed) {
-            $this->updateDatabase();
-        } elseif ($this->requireSave) {
-            $this->updateDatabaseStates();
-        }
+            if ($refreshed) {
+                $this->updateDatabase();
+            } elseif ($this->requireSave) {
+                $this->updateDatabaseStates();
+            }
 
-        return $result;
+            return $result;
+        });
     }
 
     protected function pushHydratedEventWithoutRefreshing(Event $event, Closure $next): bool
     {
-        try {
-            context()->handler->pageStack[] = $this;
-            if ($this->listener->pushEventAt($event, true)) {
-                return true;
-            }
+        if ($this->listener->pushEventAt($event, true)) {
+            return true;
+        }
 
-            if ($this->topListener->pushEventAt($event, true)) {
-                return true;
-            }
-        } finally {
-            array_pop(context()->handler->pageStack);
+        if ($this->topListener->pushEventAt($event, true)) {
+            return true;
         }
 
         if ($next($event)) {
@@ -169,17 +170,12 @@ class Page
             return true;
         }
 
-        try {
-            context()->handler->pageStack[] = $this;
-            if ($this->topListener->pushEventAt($event, false)) {
-                return true;
-            }
+        if ($this->topListener->pushEventAt($event, false)) {
+            return true;
+        }
 
-            if ($this->listener->pushEventAt($event, false)) {
-                return true;
-            }
-        } finally {
-            array_pop(context()->handler->pageStack);
+        if ($this->listener->pushEventAt($event, false)) {
+            return true;
         }
 
         return false;
@@ -345,10 +341,26 @@ class Page
         return $this->params;
     }
 
+    protected function usingPageContext(Closure $callback): mixed
+    {
+        $context = context();
+
+        if ($context->handler->pageStack && end($context->handler->pageStack) === $this) {
+            return $callback();
+        }
+
+        $context->handler->pageStack[] = $this;
+
+        try {
+            return $callback();
+        } finally {
+            array_pop(context()->handler->pageStack);
+        }
+    }
+
     protected function callReference(Closure $callback): void
     {
         $invoker = $this->getReferenceCallbackWithMiddlewares();
-        context()->handler->pageStack[] = $this;
 
         try {
             $callback(
@@ -360,8 +372,6 @@ class Page
             );
         } catch (StopPage) {
             $callback(null);
-        } finally {
-            array_pop(context()->handler->pageStack);
         }
     }
 
@@ -410,13 +420,7 @@ class Page
             }
 
             if ($ok) {
-                context()->handler->pageStack[] = $this;
-
-                try {
-                    $callback();
-                } finally {
-                    array_pop(context()->handler->pageStack);
-                }
+                $callback();
             }
         }
     }
