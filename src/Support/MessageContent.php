@@ -178,4 +178,14 @@ readonly class MessageContent
             ],
         };
     }
+
+    public function send(TelegramApi $api, string|int $chat_id, ...$args): mixed
+    {
+        return $this->getApi($api)(...[...$this->getArgs(), 'chat_id' => $chat_id, ...$args]);
+    }
+
+    public function edit(TelegramApi $api, string|int $chat_id, string|int $message_id, ...$args): mixed
+    {
+        return $this->getEditApi($api)(...[...$this->getEditArgs(), 'chat_id' => $chat_id, 'message_id' => $message_id, ...$args]);
+    }
 }
