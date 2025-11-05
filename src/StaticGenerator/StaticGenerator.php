@@ -27,13 +27,6 @@ class StaticGenerator
                 ['document', 'InputMediaDocument'],
             ],
         ],
-        'InputFile' => [
-            'key' => 'type',
-            'values' => [
-                ['photo', 'InputPaidMediaPhoto'],
-                ['video', 'InputPaidMediaVideo'],
-            ],
-        ],
         'InputProfilePhoto' => [
             'key' => 'type',
             'values' => [

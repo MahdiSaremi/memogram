@@ -8,14 +8,14 @@ use MemoGram\Api\Concerns;
 use MemoGram\Api\Types\User;
 
 
-class ChatBoostSourceGiveaway
+class ChatBoostSourceGiveaway extends ChatBoostSource
 {
     use Concerns\Data;
 
+    /** @var string Source of the boost, always “giveaway” */
+    public string $source = 'giveaway';
+
     public function __construct(
-        /** @var string Source of the boost, always “giveaway” */
-        public string $source,
-        
         /** @var int Identifier of a message in the chat with the giveaway; the message could have been deleted already. May be 0 if the message isn't sent yet. */
         public int $giveaway_message_id,
         

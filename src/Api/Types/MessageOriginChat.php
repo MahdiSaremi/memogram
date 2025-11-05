@@ -8,14 +8,14 @@ use MemoGram\Api\Concerns;
 use MemoGram\Api\Types\Chat;
 
 
-class MessageOriginChat
+class MessageOriginChat extends MessageOrigin
 {
     use Concerns\Data;
 
+    /** @var string Type of the message origin, always “chat” */
+    public string $type = 'chat';
+
     public function __construct(
-        /** @var string Type of the message origin, always “chat” */
-        public string $type,
-        
         /** @var int Date the message was sent originally in Unix time */
         public int $date,
         

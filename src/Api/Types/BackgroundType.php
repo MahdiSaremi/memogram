@@ -8,20 +8,15 @@ use MemoGram\Api\Concerns;
 use MemoGram\Api\Types\BackgroundFill;
 
 
-class BackgroundType
+abstract class BackgroundType
 {
-    use Concerns\Data;
-
-    public function __construct(
-        /** @var string Type of the background, always “fill” */
-        public string $type,
-        
-        /** @var BackgroundFill The background fill */
-        public BackgroundFill $fill,
-        
-        /** @var int Dimming of the background in dark themes, as a percentage; 0-100 */
-        public int $dark_theme_dimming,
-        
-        
-    ) { }
+    public static function makeDynamic(array $data): self
+    {
+        return match ($data['type']) {
+            'fill' => BackgroundTypeFill::makeFromArray($data),
+            'wallpaper' => BackgroundTypeWallpaper::makeFromArray($data),
+            'pattern' => BackgroundTypePattern::makeFromArray($data),
+            'chat_theme' => BackgroundTypeChatTheme::makeFromArray($data),
+        };
+    }
 }

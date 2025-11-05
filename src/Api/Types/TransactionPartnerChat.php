@@ -9,14 +9,14 @@ use MemoGram\Api\Types\Chat;
 use MemoGram\Api\Types\Gift;
 
 
-class TransactionPartnerChat
+class TransactionPartnerChat extends TransactionPartner
 {
     use Concerns\Data;
 
+    /** @var string Type of the transaction partner, always “chat” */
+    public string $type = 'chat';
+
     public function __construct(
-        /** @var string Type of the transaction partner, always “chat” */
-        public string $type,
-        
         /** @var Chat Information about the chat */
         public Chat $chat,
         

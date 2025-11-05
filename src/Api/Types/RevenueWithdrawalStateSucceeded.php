@@ -7,14 +7,14 @@ namespace MemoGram\Api\Types;
 use MemoGram\Api\Concerns;
 
 
-class RevenueWithdrawalStateSucceeded
+class RevenueWithdrawalStateSucceeded extends RevenueWithdrawalState
 {
     use Concerns\Data;
 
+    /** @var string Type of the state, always “succeeded” */
+    public string $type = 'succeeded';
+
     public function __construct(
-        /** @var string Type of the state, always “succeeded” */
-        public string $type,
-        
         /** @var int Date the withdrawal was completed in Unix time */
         public int $date,
         

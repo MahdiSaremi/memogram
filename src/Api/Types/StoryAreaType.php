@@ -8,23 +8,16 @@ use MemoGram\Api\Concerns;
 use MemoGram\Api\Types\LocationAddress;
 
 
-class StoryAreaType
+abstract class StoryAreaType
 {
-    use Concerns\Data;
-
-    public function __construct(
-        /** @var string Type of the area, always “location” */
-        public string $type,
-        
-        /** @var float Location latitude in degrees */
-        public float $latitude,
-        
-        /** @var float Location longitude in degrees */
-        public float $longitude,
-        
-        /** @var LocationAddress|null Optional. Address of the location */
-        public null|LocationAddress $address = null,
-        
-        
-    ) { }
+    public static function makeDynamic(array $data): self
+    {
+        return match ($data['type']) {
+            'location' => StoryAreaTypeLocation::makeFromArray($data),
+            'suggested_reaction' => StoryAreaTypeSuggestedReaction::makeFromArray($data),
+            'link' => StoryAreaTypeLink::makeFromArray($data),
+            'weather' => StoryAreaTypeWeather::makeFromArray($data),
+            'unique_gift' => StoryAreaTypeUniqueGift::makeFromArray($data),
+        };
+    }
 }

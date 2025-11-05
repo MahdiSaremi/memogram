@@ -9,14 +9,14 @@ use MemoGram\Api\Types\Document;
 use MemoGram\Api\Types\BackgroundFill;
 
 
-class BackgroundTypePattern
+class BackgroundTypePattern extends BackgroundType
 {
     use Concerns\Data;
 
+    /** @var string Type of the background, always “pattern” */
+    public string $type = 'pattern';
+
     public function __construct(
-        /** @var string Type of the background, always “pattern” */
-        public string $type,
-        
         /** @var Document Document with the pattern */
         public Document $document,
         

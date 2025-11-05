@@ -7,14 +7,14 @@ namespace MemoGram\Api\Types;
 use MemoGram\Api\Concerns;
 
 
-class MessageOriginHiddenUser
+class MessageOriginHiddenUser extends MessageOrigin
 {
     use Concerns\Data;
 
+    /** @var string Type of the message origin, always “hidden_user” */
+    public string $type = 'hidden_user';
+
     public function __construct(
-        /** @var string Type of the message origin, always “hidden_user” */
-        public string $type,
-        
         /** @var int Date the message was sent originally in Unix time */
         public int $date,
         

@@ -8,14 +8,14 @@ use MemoGram\Api\Concerns;
 use MemoGram\Api\Types\User;
 
 
-class TransactionPartnerAffiliateProgram
+class TransactionPartnerAffiliateProgram extends TransactionPartner
 {
     use Concerns\Data;
 
+    /** @var string Type of the transaction partner, always “affiliate_program” */
+    public string $type = 'affiliate_program';
+
     public function __construct(
-        /** @var string Type of the transaction partner, always “affiliate_program” */
-        public string $type,
-        
         /** @var User|null Optional. Information about the bot that sponsored the affiliate program */
         public null|User $sponsor_user = null,
         

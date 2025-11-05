@@ -25,11 +25,6 @@ use MemoGram\Api\Types\InlineQueryResult;
 use MemoGram\Api\Types\InlineQueryResultsButton;
 use MemoGram\Api\Types\InputChecklist;
 use MemoGram\Api\Types\InputMedia;
-use MemoGram\Api\Types\InputMediaAnimation;
-use MemoGram\Api\Types\InputMediaAudio;
-use MemoGram\Api\Types\InputMediaDocument;
-use MemoGram\Api\Types\InputMediaPhoto;
-use MemoGram\Api\Types\InputMediaVideo;
 use MemoGram\Api\Types\InputProfilePhoto;
 use MemoGram\Api\Types\InputSticker;
 use MemoGram\Api\Types\InputStoryContent;
@@ -569,7 +564,7 @@ class TelegramApi
     /**
      * Description of the message to reply to
      * @param int|string $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
-     * @param array<InputMediaAudio|InputMediaDocument|InputMediaPhoto|InputMediaVideo|array> $media A JSON-serialized array describing messages to be sent, must include 2-10 items
+     * @param array<InputMedia|array> $media A JSON-serialized array describing messages to be sent, must include 2-10 items
      * @param string|null $business_connection_id Unique identifier of the business connection on behalf of which the message will be sent
      * @param int|null $message_thread_id Unique identifier for the target message thread (topic) of the forum; for forum supergroups only
      * @param int|null $direct_messages_topic_id Identifier of the direct messages topic to which the messages will be sent; required if the messages are sent to a direct messages chat
@@ -2101,7 +2096,7 @@ class TelegramApi
 
     /**
      * A JSON-serialized object for a new inline keyboard.
-     * @param InputMediaPhoto|InputMediaVideo|InputMediaAnimation|InputMediaAudio|InputMediaDocument|array $media A JSON-serialized object for a new media content of the message
+     * @param InputMedia|array $media A JSON-serialized object for a new media content of the message
      * @param string|null $business_connection_id Unique identifier of the business connection on behalf of which the message to be edited was sent
      * @param int|string|null $chat_id Required if inline_message_id is not specified. Unique identifier for the target chat or username of the target channel (in the format @channelusername)
      * @param int|null $message_id Required if inline_message_id is not specified. Identifier of the message to edit
@@ -2109,7 +2104,7 @@ class TelegramApi
      * @param InlineKeyboardMarkup|null $reply_markup A JSON-serialized object for a new inline keyboard.
      * @return mixed
      */
-    public function editMessageMedia(InputMediaPhoto|InputMediaVideo|InputMediaAnimation|InputMediaAudio|InputMediaDocument|array $media, ?string $business_connection_id = null, int|string|null $chat_id = null, ?int $message_id = null, ?string $inline_message_id = null, ?InlineKeyboardMarkup $reply_markup = null, ...$args): mixed
+    public function editMessageMedia(InputMedia|array $media, ?string $business_connection_id = null, int|string|null $chat_id = null, ?int $message_id = null, ?string $inline_message_id = null, ?InlineKeyboardMarkup $reply_markup = null, ...$args): mixed
     {
         $vars = get_defined_vars();
         unset($vars['args']);

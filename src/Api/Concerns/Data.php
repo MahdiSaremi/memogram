@@ -60,6 +60,9 @@ trait Data
         }
 
         if (class_exists($className ??= "\\MemoGram\\Api\\Types\\$typeString") && is_array($value)) {
+            if ((new \ReflectionClass($className))->isAbstract() && method_exists($className, 'makeDynamic')) {
+                return $className::makeDynamic($value);
+            }
             if (method_exists($className, 'makeFromArray')) {
                 return $className::makeFromArray($value);
             }

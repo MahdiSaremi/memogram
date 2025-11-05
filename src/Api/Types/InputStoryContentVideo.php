@@ -7,14 +7,14 @@ namespace MemoGram\Api\Types;
 use MemoGram\Api\Concerns;
 
 
-class InputStoryContentVideo
+class InputStoryContentVideo extends InputStoryContent
 {
     use Concerns\Data;
 
+    /** @var string Type of the content, must be video */
+    public string $type = 'video';
+
     public function __construct(
-        /** @var string Type of the content, must be video */
-        public string $type,
-        
         /** @var string The video to post as a story. The video must be of the size 720x1280, streamable, encoded with H.265 codec, with key frames added each second in the MPEG4 format, and must not exceed 30 MB. The video can't be reused and can only be uploaded as a new file, so you can pass “attach://<file_attach_name>” if the video was uploaded using multipart/form-data under <file_attach_name>. More information on Sending Files » */
         public string $video,
         

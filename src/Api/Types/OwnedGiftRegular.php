@@ -9,14 +9,14 @@ use MemoGram\Api\Types\Gift;
 use MemoGram\Api\Types\User;
 
 
-class OwnedGiftRegular
+class OwnedGiftRegular extends OwnedGift
 {
     use Concerns\Data;
 
+    /** @var string Type of the gift, always “regular” */
+    public string $type = 'regular';
+
     public function __construct(
-        /** @var string Type of the gift, always “regular” */
-        public string $type,
-        
         /** @var Gift Information about the regular gift */
         public Gift $gift,
         

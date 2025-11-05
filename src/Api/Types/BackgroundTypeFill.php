@@ -8,14 +8,14 @@ use MemoGram\Api\Concerns;
 use MemoGram\Api\Types\BackgroundFill;
 
 
-class BackgroundTypeFill
+class BackgroundTypeFill extends BackgroundType
 {
     use Concerns\Data;
 
+    /** @var string Type of the background, always “fill” */
+    public string $type = 'fill';
+
     public function __construct(
-        /** @var string Type of the background, always “fill” */
-        public string $type,
-        
         /** @var BackgroundFill The background fill */
         public BackgroundFill $fill,
         

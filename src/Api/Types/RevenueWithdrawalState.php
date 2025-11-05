@@ -4,17 +4,15 @@ declare(strict_types=1);
 
 namespace MemoGram\Api\Types;
 
-use MemoGram\Api\Concerns;
 
-
-class RevenueWithdrawalState
+abstract class RevenueWithdrawalState
 {
-    use Concerns\Data;
-
-    public function __construct(
-        /** @var string Type of the state, always “pending” */
-        public string $type,
-        
-        
-    ) { }
+    public static function makeDynamic(array $data): self
+    {
+        return match ($data['type']) {
+            'pending' => RevenueWithdrawalStatePending::makeFromArray($data),
+            'succeeded' => RevenueWithdrawalStateSucceeded::makeFromArray($data),
+            'failed' => RevenueWithdrawalStateFailed::makeFromArray($data),
+        };
+    }
 }

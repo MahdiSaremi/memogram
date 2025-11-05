@@ -11,10 +11,10 @@ class TransactionPartnerTelegramAds
 {
     use Concerns\Data;
 
+    /** @var string Type of the transaction partner, always “telegram_ads” */
+    public string $type = 'telegram_ads';
+
     public function __construct(
-        /** @var string Type of the transaction partner, always “telegram_ads” */
-        public string $type,
-        
-        
+
     ) { }
 }

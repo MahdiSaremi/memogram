@@ -4,21 +4,15 @@ declare(strict_types=1);
 
 namespace MemoGram\Api\Types;
 
-use MemoGram\Api\Concerns;
-use MemoGram\Api\Types\User;
 
-
-class ChatBoostSource
+abstract class ChatBoostSource
 {
-    use Concerns\Data;
-
-    public function __construct(
-        /** @var string Source of the boost, always “premium” */
-        public string $source,
-        
-        /** @var User User that boosted the chat */
-        public User $user,
-        
-        
-    ) { }
+    public static function makeDynamic(array $data): self
+    {
+        return match ($data['source']) {
+            'premium' => ChatBoostSourcePremium::makeFromArray($data),
+            'gift_code' => ChatBoostSourceGiftCode::makeFromArray($data),
+            'giveaway' => ChatBoostSourceGiveaway::makeFromArray($data),
+        };
+    }
 }

@@ -8,14 +8,14 @@ use MemoGram\Api\Concerns;
 use MemoGram\Api\Types\LocationAddress;
 
 
-class StoryAreaTypeLocation
+class StoryAreaTypeLocation extends StoryAreaType
 {
     use Concerns\Data;
 
+    /** @var string Type of the area, always “location” */
+    public string $type = 'location';
+
     public function __construct(
-        /** @var string Type of the area, always “location” */
-        public string $type,
-        
         /** @var float Location latitude in degrees */
         public float $latitude,
         

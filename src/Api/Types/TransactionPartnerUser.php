@@ -14,10 +14,10 @@ class TransactionPartnerUser
 {
     use Concerns\Data;
 
+    /** @var string Type of the transaction partner, always “user” */
+    public string $type = 'user';
+
     public function __construct(
-        /** @var string Type of the transaction partner, always “user” */
-        public string $type,
-        
         /** @var string Type of the transaction, currently one of “invoice_payment” for payments via invoices, “paid_media_payment” for payments for paid media, “gift_purchase” for gifts sent by the bot, “premium_purchase” for Telegram Premium subscriptions gifted by the bot, “business_account_transfer” for direct transfers from managed business accounts */
         public string $transaction_type,
         

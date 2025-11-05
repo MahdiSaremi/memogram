@@ -8,14 +8,14 @@ use MemoGram\Api\Concerns;
 use MemoGram\Api\Types\User;
 
 
-class ChatMemberOwner
+class ChatMemberOwner extends ChatMember
 {
     use Concerns\Data;
 
+    /** @var string The member's status in the chat, always “creator” */
+    public string $status = 'creator';
+
     public function __construct(
-        /** @var string The member's status in the chat, always “creator” */
-        public string $status,
-        
         /** @var User Information about the user */
         public User $user,
         

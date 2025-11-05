@@ -7,14 +7,14 @@ namespace MemoGram\Api\Types;
 use MemoGram\Api\Concerns;
 
 
-class StoryAreaTypeWeather
+class StoryAreaTypeWeather extends StoryAreaType
 {
     use Concerns\Data;
 
+    /** @var string Type of the area, always “weather” */
+    public string $type = 'weather';
+
     public function __construct(
-        /** @var string Type of the area, always “weather” */
-        public string $type,
-        
         /** @var float Temperature, in degree Celsius */
         public float $temperature,
         

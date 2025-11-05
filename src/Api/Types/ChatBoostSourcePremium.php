@@ -8,14 +8,14 @@ use MemoGram\Api\Concerns;
 use MemoGram\Api\Types\User;
 
 
-class ChatBoostSourcePremium
+class ChatBoostSourcePremium extends ChatBoostSource
 {
     use Concerns\Data;
 
+    /** @var string Source of the boost, always “premium” */
+    public string $source = 'premium';
+
     public function __construct(
-        /** @var string Source of the boost, always “premium” */
-        public string $source,
-        
         /** @var User User that boosted the chat */
         public User $user,
         

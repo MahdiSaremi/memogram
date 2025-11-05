@@ -8,14 +8,14 @@ use MemoGram\Api\Concerns;
 use MemoGram\Api\Types\ReactionType;
 
 
-class StoryAreaTypeSuggestedReaction
+class StoryAreaTypeSuggestedReaction extends StoryAreaType
 {
     use Concerns\Data;
 
+    /** @var string Type of the area, always “suggested_reaction” */
+    public string $type = 'suggested_reaction';
+
     public function __construct(
-        /** @var string Type of the area, always “suggested_reaction” */
-        public string $type,
-        
         /** @var ReactionType Type of the reaction */
         public ReactionType $reaction_type,
         

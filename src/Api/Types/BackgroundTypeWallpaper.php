@@ -8,14 +8,14 @@ use MemoGram\Api\Concerns;
 use MemoGram\Api\Types\Document;
 
 
-class BackgroundTypeWallpaper
+class BackgroundTypeWallpaper extends BackgroundType
 {
     use Concerns\Data;
 
+    /** @var string Type of the background, always “wallpaper” */
+    public string $type = 'wallpaper';
+
     public function __construct(
-        /** @var string Type of the background, always “wallpaper” */
-        public string $type,
-        
         /** @var Document Document with the wallpaper */
         public Document $document,
         

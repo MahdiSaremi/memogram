@@ -9,14 +9,14 @@ use MemoGram\Api\Types\UniqueGift;
 use MemoGram\Api\Types\User;
 
 
-class OwnedGiftUnique
+class OwnedGiftUnique extends OwnedGift
 {
     use Concerns\Data;
 
+    /** @var string Type of the gift, always “unique” */
+    public string $type = 'unique';
+
     public function __construct(
-        /** @var string Type of the gift, always “unique” */
-        public string $type,
-        
         /** @var UniqueGift Information about the unique gift */
         public UniqueGift $gift,
         

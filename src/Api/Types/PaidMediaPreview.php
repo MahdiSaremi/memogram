@@ -7,14 +7,14 @@ namespace MemoGram\Api\Types;
 use MemoGram\Api\Concerns;
 
 
-class PaidMediaPreview
+class PaidMediaPreview extends PaidMedia
 {
     use Concerns\Data;
 
+    /** @var string Type of the paid media, always “preview” */
+    public string $type = 'preview';
+
     public function __construct(
-        /** @var string Type of the paid media, always “preview” */
-        public string $type,
-        
         /** @var int|null Optional. Media width as defined by the sender */
         public null|int $width = null,
         
