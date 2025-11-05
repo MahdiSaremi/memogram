@@ -2,19 +2,21 @@
 
 namespace MemoGram\Api\Concerns;
 
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 
 trait Requests
 {
     public function call(string $method, array $data = []): mixed
     {
-        $data = $this->prepareData($data, true);
+        [$options, $data] = $this->processArgs($data);
 
         return Http
             ::asForm()
             ->timeout(60)
             ->acceptJson()
             ->asJson()
+            ->when(!$options['ignore'])
             ->throw()
 //            ->when(!empty($this->proxy))
 //            ->withOptions([
@@ -22,6 +24,18 @@ trait Requests
 //            ])
             ->post("https://api.telegram.org/bot{$this->token}/{$method}", $data)
             ->json('result');
+    }
+
+    protected function processArgs(array $data): array
+    {
+        $options = [
+            'ignore' => @$data['ignore'] ?? false,
+        ];
+
+        return [
+            $options,
+            $this->prepareData(Arr::except($data, ['ignore']), true),
+        ];
     }
 
     protected function prepareData(array $data, bool $isObject): array
