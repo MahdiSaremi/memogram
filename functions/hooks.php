@@ -44,6 +44,23 @@ function useDynamic($key, Closure $callback): mixed
 
 /**
  * @template T
+ * @param $key
+ * @param array<string|int, Closure> $states
+ * @return T
+ */
+function useSwitch($key, array $states): mixed
+{
+    return useDynamic($key, function () use ($key, &$states) {
+        if (array_key_exists($key, $states)) {
+            return $states[$key]();
+        }
+
+        return null;
+    });
+}
+
+/**
+ * @template T
  * @template E
  * @param bool $condition
  * @param Closure(): T $then

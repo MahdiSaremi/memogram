@@ -8,6 +8,7 @@ use MemoGram\Response\Key;
 use function MemoGram\Handle\eventHandler;
 use function MemoGram\Handle\getEvent;
 use function MemoGram\Handle\page;
+use function MemoGram\Hooks\mounting;
 use function MemoGram\Hooks\onMessage;
 use function MemoGram\Hooks\refresh;
 
@@ -29,6 +30,11 @@ class Form
         $values = page()->useState($default);
 
         return new static($values);
+    }
+
+    public function usePath(array $path): FormPath
+    {
+        return new FormPath($this, $path);
     }
 
     public function withCancel($action, $text = null)
@@ -88,6 +94,11 @@ class Form
         return array_key_exists($name, $this->values->value);
     }
 
+    public function missed(string $name): bool
+    {
+        return !array_key_exists($name, $this->values->value);
+    }
+
     public function currentPrompt(): ?FormPrompt
     {
         return $this->currentPrompt;
@@ -127,8 +138,16 @@ class Form
     public function option(string $text, $value): Key
     {
         return \MemoGram\Hooks\key($text)->then(function () use ($value) {
-            $this->set($this->currentPrompt()->name, $value);
-            refresh();
+            $this->currentPrompt()->setValue($value);
         });
+    }
+
+    public function defaults(array|Closure $defaults)
+    {
+        if (!$this->values->isRestored()) {
+            $this->values->value = array_replace($this->values->value, value($defaults));
+        }
+
+        return $this;
     }
 }

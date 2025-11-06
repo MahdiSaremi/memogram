@@ -23,4 +23,9 @@ class ReadonlyState
 
         return null;
     }
+
+    public function isRestored()
+    {
+        return $this->restored;
+    }
 }
