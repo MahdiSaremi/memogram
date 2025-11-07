@@ -23,6 +23,7 @@ class EventHandler
 
     protected ListenerDispatcher $staticListener;
     protected array $globalMiddlewares = [];
+    protected AreaRegistry $areaRegistry;
 
     /**
      * @var Page[]
@@ -34,6 +35,7 @@ class EventHandler
     )
     {
         $this->staticListener = new ListenerDispatcher();
+        $this->areaRegistry = new AreaRegistry();
     }
 
     public static function make(TelegramApi|string $api): static
@@ -301,5 +303,10 @@ class EventHandler
         }
 
         throw new \TypeError("Expected AsResponse type, got " . is_object($response) ? get_class($response) : gettype($response));
+    }
+
+    public function areaRegistry(): AreaRegistry
+    {
+        return $this->areaRegistry;
     }
 }

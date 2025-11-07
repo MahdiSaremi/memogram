@@ -8,7 +8,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use MemoGram\Exceptions\ForcePageResponse;
 use MemoGram\Exceptions\StopPage;
-use MemoGram\Handle\Middleware\Attributes\Middleware as MiddlewareAttribute;
+use MemoGram\Handle\Attributes\Middleware as MiddlewareAttribute;
 use MemoGram\Matching\ListenerDispatcher;
 use MemoGram\Models\PageCellModel;
 use MemoGram\Models\PageModel;
