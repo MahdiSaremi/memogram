@@ -83,9 +83,10 @@ class AreaRegistry
     }
 
 
-    public function getFeatureForMethod(string $class, string $method, array $options): array
+    public function getFeatureForMethod(string $class, string $method, array $options, ?string $reference = null): array
     {
-        $result = $this->getFeatureForClass($class, $options);
+        $reference ??= "$class@$method";
+        $result = $this->getFeatureForClass($class, $options, $reference);
 
         if (isset($options['method.attribute'])) {
             foreach ((new ReflectionMethod($class, $method))->getAttributes($options['method.attribute']) as $attr) {
@@ -98,9 +99,10 @@ class AreaRegistry
         return $result;
     }
 
-    public function getFeatureForClass(string $class, array $options): array
+    public function getFeatureForClass(string $class, array $options, ?string $reference = null): array
     {
-        $result = $this->getFeatureForNamespace(class_basename($class), $options);
+        $reference ??= $class;
+        $result = $this->getFeatureForNamespace(class_basename($class), $options, $reference);
 
         if (isset($options['class.attribute'])) {
             foreach ((new ReflectionClass($class))->getAttributes($options['class.attribute']) as $attr) {
@@ -113,8 +115,9 @@ class AreaRegistry
         return $result;
     }
 
-    public function getFeatureForNamespace(string $namespace, array $options): array
+    public function getFeatureForNamespace(string $namespace, array $options, ?string $reference = null): array
     {
+        $reference ??= $namespace;
         $result = [];
 
         $partition = $namespace;
@@ -127,7 +130,7 @@ class AreaRegistry
 
             if ((isset($options['area.method']) || isset($options['area.using'])) && class_exists($class = "$partition\\_Area")) {
                 /** @var Area $area */
-                $area = new $class;
+                $area = new $class($reference);
 
                 if (isset($options['area.method']) && method_exists($area, $options['area.method'])) {
                     array_push($namespaceResult, ...$area->{$options['area.method']}());
